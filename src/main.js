@@ -5,7 +5,7 @@ class Game {
         this.canvas = document.getElementById("myCanvas");
         this.context = this.canvas.getContext("2d");
         this.fFOV = 3.14159 / 4.0;	// Field of View
-        this.fSpeed = 5.0;
+        this.fSpeed = 2;
         this.fDepth = 32;			// Maximum rendering distance
         this.mapHeight = 16;
         this.mapWidth = 16;
@@ -40,6 +40,9 @@ class Game {
         this.map += "#..............#";
         this.map += "################";
         
+        this.nCeiling = 0;
+        this.nFloor = 0;
+
         this.createEventListeners();
         this.move();
         
@@ -52,24 +55,39 @@ class Game {
         
         this.context.fillStyle = 'rgb(44, 107, 255)';
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        var linearGradient1 = this.context.createLinearGradient(0, this.canvas.height, 0, this.canvas.height / 2);
+        linearGradient1.addColorStop(0, 'rgb(147, 67, 2)');
+        linearGradient1.addColorStop(0.65, this.shadeBlendConvert(-0.8, 'rgb(147, 67, 2)'));
+        linearGradient1.addColorStop(1, 'rgb(0, 0, 0)');
+        this.context.fillStyle = linearGradient1;
+        this.context.fillRect(0, this.canvas.height / 2, this.canvas.width, this.canvas.height / 2);
         this.context.fillStyle = 'black';
 
-        for (let i = 0; i < this.screenWidth; i++) {
-            let fRayAngle = (this.player.angle - this.fFOV / 2.0) + (i / this.screenWidth) * this.fFOV;
-            let stepSize = 0.05;
-            let distanceToWall = 0.0;
-            let bHitWall = false;		// Set when ray hits wall block
+        let fRayAngle = 0;
+        let stepSize = 0;
+        let distanceToWall = 0;
+        let bHitWall = 0;
+        let eyeX = 0;
+        let eyeY = 0;
+        let nTestX = 0;
+        let nTestY = 0;
 
-            let eyeX = Math.sin(fRayAngle); // Unit vector for ray in player space
-            let eyeY = Math.cos(fRayAngle);
+
+        for (let i = 0; i < this.screenWidth; i++) {
+            fRayAngle = (this.player.angle - this.fFOV / 2.0) + (i / this.screenWidth) * this.fFOV;
+            stepSize = 0.05;
+            distanceToWall = 0.0;
+            bHitWall = false;		// Set when ray hits wall block
+            eyeX = Math.sin(fRayAngle); // Unit vector for ray in player space
+            eyeY = Math.cos(fRayAngle);
 
             // Incrementally cast ray from player, along ray angle, testing for 
             // intersection with a block
             while (!bHitWall && distanceToWall < this.fDepth) {
 
                 distanceToWall += stepSize;
-                let nTestX = Math.floor(this.player.posX + eyeX * distanceToWall);
-                let nTestY = Math.floor(this.player.posY + eyeY * distanceToWall);
+                nTestX = Math.floor(this.player.posX + eyeX * distanceToWall);
+                nTestY = Math.floor(this.player.posY + eyeY * distanceToWall);
 
                 // Test if ray is out of bounds
                 if (nTestX < 0 || nTestX >= this.mapWidth || nTestY < 0 || nTestY >= this.mapHeight) {
@@ -84,50 +102,30 @@ class Game {
                 }
             }
             // Calculate distance to ceiling and floor
-            let nCeiling = (this.screenHeight / 2.0) - (this.screenHeight / distanceToWall);
-            let nFloor = this.screenHeight - nCeiling;
+            this.nCeiling = (this.screenHeight / 2.0) - (this.screenHeight / distanceToWall);
+            this.nFloor = this.screenHeight - this.nCeiling;
 
             // Shader walls based on distance
             let shadeLevel = (distanceToWall * 0.1).toFixed(2) * -1;
             shadeLevel = shadeLevel < -1 || shadeLevel > 0 ? -1 : shadeLevel;
-            let wShade = this.shadeBlendConvert(shadeLevel, 'rgb(119, 119, 119)');
-            this.context.fillStyle = wShade;
-            
+            let wShade = this.shadeBlendConvert(shadeLevel, 'rgb(119, 119, 119)');   
+            this.context.fillStyle = wShade;        
+
             for (let y = 0; y < this.screenHeight; y++) {
                 // Each Row
                 let b = 1.0 - ((y - this.screenHeight / 2.0) / (this.screenHeight / 2.0));
-                if (y <= nCeiling) {
-                } else if (y > nCeiling && y <= nFloor) {
-                    // screen[y*this.screenWidth + x] = nShade;
-                    this.context.fillRect(i * this.resDecrease, y * this.resDecrease, this.resDecrease, this.resDecrease);//y*this.screenWidth + i
-                }
-                else // Floor
-                {
+                if (y <= this.nCeiling) { // roof
+                } else if (y > this.nCeiling && y <= this.nFloor) {
+                    this.context.fillRect(i * this.resDecrease, y * this.resDecrease, this.resDecrease, this.resDecrease);
+                } else { // Floor
                     // Shade floor based on distance
-                    let gshade = this.shadeBlendConvert((b).toFixed(2) * -1, 'rgb(147, 67, 2)');
-
-                    this.context.fillStyle = gshade;
-                    this.context.fillRect(i * this.resDecrease, y * this.resDecrease, this.resDecrease, this.resDecrease);//y*this.screenWidth + i
-                    this.context.fillStyle = wShade;
+                    // let gshade = this.shadeBlendConvert((b).toFixed(2) * -1, 'rgb(147, 67, 2)');
+                    // this.context.fillStyle = gshade;
+                    // this.context.fillRect(i * this.resDecrease, y * this.resDecrease, this.resDecrease, this.resDecrease);
                 }
             }
         }
         this.context.fillStyle = 'black';
-        //     for(let i = 0; i < 20; i++) {
-        //       for(let j = 0; j < 20; j++) {
-        //         var this.canvas=document.getElementById("myCanvas");
-        //         var this.context=this.canvas.getContext("2d");
-        //         if(this.map[i][j] === '#') {
-        //             this.context.fillRect(pX,pY,40,40);
-        //         }
-        //         pX   += step;
-
-        //         if(px === i && py === j) this.context.fillRect(pX,pY,40,40);
-        //       } 
-        //       pX = 0;
-        //       pY+= step;
-        //     }
-        // Display this.map
         this.context.fillStyle = 'white';        
         for (let nx = 0; nx < this.mapWidth; nx++) {
         	for (let ny = 0; ny < this.mapHeight; ny++)
@@ -138,15 +136,9 @@ class Game {
         	}
         }
         this.context.fillStyle = 'red';
-        this.context.fillRect((this.player.posX * 10) + 10, (this.player.posY * 10) + 10, 10, 10);
+        this.context.fillRect((this.player.posY * 10) + 10, (this.player.posX * 10) + 10, 10, 10);
         this.context.fillStyle = 'black';
 
-        // Display Frame
-        // screen[nScreenWidth * nthis.ScreenHeight - 1] = '\0';
-        // WriteConsoleOutputCharacter(hConsole, screen, nScreenWidth * nthis.ScreenHeight, { 0,0 }, &dwBytesWritten);
-        this.context.beginPath();
-        //this.context.arc(x, y, radius, startAngle, endAngle, anticlockwise);
-        this.context.stroke();
         let self = this;
         setTimeout(self.move.bind(self), 50);
     }
