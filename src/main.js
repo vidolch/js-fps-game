@@ -9,7 +9,7 @@ class Game {
         this.fDepth = 32;			// Maximum rendering distance
         this.mapHeight = 16;
         this.mapWidth = 16;
-        this.resDecrease = 4;
+        this.resDecrease = 1;
         this.tp1 = Date.now();
         this.tp2 = Date.now();
         this.fElapsedTime = 0;
@@ -42,6 +42,8 @@ class Game {
         
         this.nCeiling = 0;
         this.nFloor = 0;
+        this.wallTexture = document.getElementById('source');
+        this.wallPatern = null;
 
         this.createEventListeners();
         this.move();
@@ -49,6 +51,7 @@ class Game {
     }
 
     move() {
+        this.wallPatern = this.wallPatern === null ? this.context.createPattern(this.wallTexture, 'repeat') : this.wallPatern; // Create a pattern with this image, and set it to "repeat".
 		this.tp2 = Date.now();
 		this.fElapsedTime = this.tp2 - this.tp1;
         this.tp1 = this.tp2;
@@ -72,15 +75,15 @@ class Game {
         let nTestX = 0;
         let nTestY = 0;
 
-
         for (let i = 0; i < this.screenWidth; i++) {
             fRayAngle = (this.player.angle - this.fFOV / 2.0) + (i / this.screenWidth) * this.fFOV;
-            stepSize = 0.05;
+            stepSize = 0.01;
             distanceToWall = 0.0;
             bHitWall = false;		// Set when ray hits wall block
             eyeX = Math.sin(fRayAngle); // Unit vector for ray in player space
             eyeY = Math.cos(fRayAngle);
 
+            let fSampleX = 0.0;
             // Incrementally cast ray from player, along ray angle, testing for 
             // intersection with a block
             while (!bHitWall && distanceToWall < this.fDepth) {
@@ -98,6 +101,25 @@ class Game {
                     if (this.map[Math.round(nTestX * this.mapWidth + nTestY)] === '#') {
                         // Ray has hit wall
                         bHitWall = true;
+
+                        // Determine where ray has hit wall. Break Block boundary
+						// int 4 line segments
+						let fBlockMidX = nTestX + 0.5;
+                        let fBlockMidY = nTestY + 0.5;
+                        
+						let fTestPointX = this.player.posX + eyeX * distanceToWall;
+                        let fTestPointY = this.player.posY + eyeY * distanceToWall;
+                        
+						let fTestAngle = Math.atan2((fTestPointY - fBlockMidY), (fTestPointX - fBlockMidX));
+
+						if (fTestAngle >= -3.14159 * 0.25 && fTestAngle < 3.14159 * 0.25)
+							fSampleX = fTestPointY - nTestY;
+						if (fTestAngle >= 3.14159 * 0.25 && fTestAngle < 3.14159 * 0.75)
+							fSampleX = fTestPointX - nTestX;
+						if (fTestAngle < -3.14159 * 0.25 && fTestAngle >= -3.14159 * 0.75)
+							fSampleX = fTestPointX - nTestX;
+						if (fTestAngle >= 3.14159 * 0.75 || fTestAngle < -3.14159 * 0.75)
+							fSampleX = fTestPointY - nTestY;
                     }
                 }
             }
@@ -106,17 +128,34 @@ class Game {
             this.nFloor = this.screenHeight - this.nCeiling;
 
             // Shader walls based on distance
-            let shadeLevel = (distanceToWall * 0.1).toFixed(2) * -1;
-            shadeLevel = shadeLevel < -1 || shadeLevel > 0 ? -1 : shadeLevel;
-            let wShade = this.shadeBlendConvert(shadeLevel, 'rgb(119, 119, 119)');   
-            this.context.fillStyle = wShade;        
-
+            let shadeLevel = (distanceToWall * 0.1).toFixed(2);// * -1;
+            // shadeLevel = shadeLevel < -1 || shadeLevel > 0 ? -1 : shadeLevel;
+            // let wShade = this.shadeBlendConvert(shadeLevel, 'rgb(119, 119, 119)');    
+            
+            let heightToDraw = 0;
+            let firstY = -1;
             for (let y = 0; y < this.screenHeight; y++) {
                 // Each Row
                 let b = 1.0 - ((y - this.screenHeight / 2.0) / (this.screenHeight / 2.0));
                 if (y <= this.nCeiling) { // roof
                 } else if (y > this.nCeiling && y <= this.nFloor) {
-                    this.context.fillRect(i * this.resDecrease, y * this.resDecrease, this.resDecrease, this.resDecrease);
+                    // Draw Wall
+					if (distanceToWall < this.fDepth)
+					{
+						let fSampleY = (y - this.nCeiling) / (this.nFloor - this.nCeiling);
+                        // Draw(x, y, spriteWall->SampleGlyph(fSampleX, fSampleY), spriteWall->SampleColour(fSampleX, fSampleY));
+                        debugger;
+                        this.context.fillStyle = this.wallPatern; 
+                        this.context.fillRect(i * this.resDecrease, y * this.resDecrease, this.resDecrease, this.resDecrease);
+					}
+                    else 
+                    {
+                        this.context.fillStyle = 'rgb(0, 0, 0)';
+                        this.context.fillRect(i * this.resDecrease, y * this.resDecrease, this.resDecrease, this.resDecrease);  
+                    }
+
+                    // heightToDraw += this.resDecrease;
+                    // firstY = firstY === -1 ? y : firstY;
                 } else { // Floor
                     // Shade floor based on distance
                     // let gshade = this.shadeBlendConvert((b).toFixed(2) * -1, 'rgb(147, 67, 2)');
@@ -124,6 +163,10 @@ class Game {
                     // this.context.fillRect(i * this.resDecrease, y * this.resDecrease, this.resDecrease, this.resDecrease);
                 }
             }
+            // this.context.fillStyle = this.wallPatern;    
+            // this.context.fillRect(i * this.resDecrease, firstY * this.resDecrease, this.resDecrease, heightToDraw);
+            // this.context.fillStyle = 'rgba(0, 0, 0, ' + shadeLevel + ')';    
+            // this.context.fillRect(i * this.resDecrease, firstY * this.resDecrease, this.resDecrease, heightToDraw);
         }
         this.context.fillStyle = 'black';
         this.context.fillStyle = 'white';        
@@ -136,11 +179,11 @@ class Game {
         	}
         }
         this.context.fillStyle = 'red';
-        this.context.fillRect((this.player.posY * 10) + 10, (this.player.posX * 10) + 10, 10, 10);
+        this.context.fillRect((this.player.posY * 10) + 10, (this.player.posX * 10) + 10, 4, 4);
         this.context.fillStyle = 'black';
 
         let self = this;
-        setTimeout(self.move.bind(self), 50);
+        setTimeout(self.move.bind(self), 1);
     }
 
     createEventListeners() {
@@ -152,7 +195,7 @@ class Game {
                 // up arrow
                 self.player.posX += Math.sin(self.player.angle) * self.fSpeed * fElapsedTime;
                 self.player.posY += Math.cos(self.player.angle) * self.fSpeed * fElapsedTime;
-                if (self.map[Math.round(self.player.posX) * self.mapWidth + Math.round(self.player.posY)] === '#')
+                if (self.map[Math.floor(self.player.posX) * self.mapWidth + Math.floor(self.player.posY)] === '#')
                 {
                     self.player.posX -= Math.sin(self.player.angle) * self.fSpeed * fElapsedTime;
                     self.player.posY -= Math.cos(self.player.angle) * self.fSpeed * fElapsedTime;
@@ -162,7 +205,7 @@ class Game {
                 // down arrow
                 self.player.posX -= Math.sin(self.player.angle) * self.fSpeed * fElapsedTime;
                 self.player.posY -= Math.cos(self.player.angle) * self.fSpeed * fElapsedTime;
-                if (self.map[Math.round(self.player.posX) * self.mapWidth + Math.round(self.player.posY)] === '#')
+                if (self.map[Math.floor(self.player.posX) * self.mapWidth + Math.floor(self.player.posY)] === '#')
                 {
                     self.player.posX += Math.sin(self.player.angle) * self.fSpeed * fElapsedTime;
                     self.player.posY += Math.cos(self.player.angle) * self.fSpeed * fElapsedTime;
