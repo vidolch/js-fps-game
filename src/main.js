@@ -144,9 +144,18 @@ class Game {
 					{
 						let fSampleY = (y - this.nCeiling) / (this.nFloor - this.nCeiling);
                         // Draw(x, y, spriteWall->SampleGlyph(fSampleX, fSampleY), spriteWall->SampleColour(fSampleX, fSampleY));
-                        debugger;
-                        this.context.fillStyle = this.wallPatern; 
-                        this.context.fillRect(i * this.resDecrease, y * this.resDecrease, this.resDecrease, this.resDecrease);
+                        // debugger;
+                        // this.wallPaternrotate(60 * Math.PI / 180);
+                        // this.context.fillStyle = this.wallPatern; 
+                        // this.context.fillRect(i * this.resDecrease, y * this.resDecrease, this.resDecrease, this.resDecrease);
+                        this.context.drawImage(
+                            this.wallTexture, 
+                            fSampleX, 
+                            fSampleY, 
+                            this.resDecrease, this.resDecrease, 
+                            i * this.resDecrease, 
+                            y * this.resDecrease, 
+                            this.resDecrease, this.resDecrease);
 					}
                     else 
                     {
