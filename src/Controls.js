@@ -56,10 +56,10 @@ export class Controls {
             canvas.requestPointerLock();
         };
         document.addEventListener('pointerlockchange', function (e) {
-            self.lockChange(canvas, pointerCallout, objContext);
+            self.lockChange(canvas, pointerCallout);
         }, false);
         document.addEventListener('mozpointerlockchange', function (e) {
-            self.lockChange(canvas, pointerCallout, objContext);
+            self.lockChange(canvas, pointerCallout);
         }, false);
     }
     lockChange(canvas, pointerCallout) {
