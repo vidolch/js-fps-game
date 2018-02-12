@@ -5,10 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <style>
+        #mainScreen {
+            width: 480px;
+            height: 320px;
+            position: relative;
+            border: 2px solid black
+        }
+        canvas { position: absolute; }
+        #uiScreen { z-index: 3 }
+        #mainScreen { z-index: 2 }
+    </style>
 </head>
 <body>
-    <canvas id="myCanvas" width="1000" height="680" style="border:1px solid #000000;"></canvas>
+    <canvas id="mainScreen" width="1000" height="680" style="border:1px solid #000000;"></canvas>
+    <canvas id="uiScreen" width="1000" height="680" style="border:1px solid #000000;"></canvas>
     <img id="source" src="sprites/wall3.bmp" width="36" height="36">
+    <img id="shotgun" src="sprites/shotgun.bmp" width="258" height="159">
     <script src="build/main.bundle.js"></script>
     <script>
     </script>

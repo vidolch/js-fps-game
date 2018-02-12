@@ -13,7 +13,7 @@ export class Renderer {
         this.nCeiling = 0;
         this.nFloor = 0;
         this.wallTexture = document.getElementById('source');
-        this.wallPatern = null;
+        this.shoutGun = document.getElementById('shotgun');
         this.offScreen = false;
     }
 
@@ -56,6 +56,12 @@ export class Renderer {
                 renderContext.fillRect(spaceX, spaceY, spaceWidth, spaceHeight);
             }
         }
+    }
+    renderImage2(imageX, imageY, imageWidth, imageHeight, spaceX, spaceY, spaceWidth, spaceHeight) {
+        this.context.drawImage(
+            this.shoutGun,
+            imageX,imageY, imageWidth, imageHeight,
+            spaceX, spaceY, spaceWidth, spaceHeight);
     }
 
     renderRect(x, y, w, h) {

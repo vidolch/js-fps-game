@@ -1,5 +1,8 @@
 import { Controls } from './Controls.js';
 import { Renderer } from './Rendering/Renderer';
+import { UI } from './UI';
+
+// Benchmark
 import { Stats } from './Utils/Stats';
 
 import { map1 } from './config';
@@ -12,7 +15,7 @@ export class Game {
         document.body.appendChild( this.stats.dom );
 
         this.controls;
-        this.renderer = new Renderer(document.getElementById("myCanvas"));
+        this.renderer = new Renderer(document.getElementById("mainScreen"));
 
         this.fFOV = 3.14159 / 4.0;	// Field of View
         this.fSpeed = 2;
@@ -29,6 +32,8 @@ export class Game {
 
         this.map = map1;
 
+        this.ui = new UI(this.renderer, this.map, this.player);
+
         this.middleCorrdinates = {};
 
         this.createControls();
@@ -42,28 +47,8 @@ export class Game {
 
         this.mainScreen(0, this.screenWidth);
 
-        this.renderer.setFillStyle('white');
-        for (let nx = 0; nx < this.map.mapWidth; nx++) {
-            for (let ny = 0; ny < this.map.mapHeight; ny++) {
-                if (this.map.surface[ny * this.map.mapWidth + nx] === '#') {
-                    this.renderer.renderRect((nx * 4) + 10, (ny * 4) + 10, 4, 4);
-                }
-            }
-        }
-        this.renderer.setFillStyle('red');
-        this.renderer.renderRect((this.player.posY * 4) + 10, (this.player.posX * 4) + 10, 2, 2);
-
-        this.renderer.renderLine([
-            {
-                x: (this.player.posY * 4) + 10,
-                y: (this.player.posX * 4) + 10
-            },            
-            {
-                x: Math.floor(this.player.posX + this.middleCorrdinates.x * 5) * 4 + 10,
-                y: Math.floor(this.player.posY + this.middleCorrdinates.y * 5) * 4 + 10,
-            }
-        ], 'red');
-        this.renderer.setFillStyle('black');
+        this.ui.drawMiniMap(this.middleCorrdinates);
+        this.ui.drawUI(this.middleCorrdinates);
 
         let self = this;
         this.stats.end();
@@ -84,7 +69,7 @@ export class Game {
 
         for (let i = from; i < to; i++) {
             fRayAngle = (this.player.angle - this.fFOV / 2.0) + (i / this.screenWidth) * this.fFOV;
-            stepSize = 0.01;
+            stepSize = 0.1;
             distanceToWall = 0.0;
             bHitWall = false;		// Set when ray hits wall block
             eyeX = Math.sin(fRayAngle); // Unit vector for ray in player space
@@ -222,11 +207,9 @@ export class Game {
     updatePosition(e) {
         if(e.movementX > 0) {
             this.player.angle += (e.movementX) * 0.005;
-            console.log("Left " + e.movementX);
         }
         if(e.movementX < 0) {
             this.player.angle += ( e.movementX) * 0.005;
-            console.log("Right " + e.movementX);
         }
     }
 }
