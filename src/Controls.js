@@ -5,7 +5,7 @@ export class Controls {
         if(options !== undefined) {
             if(options.hasOwnProperty('pointerLock')) {
                 if (!!options['pointerLock']) {
-                    if (typeof options['canvas'] === undefined) {
+                    if (typeof options['canvas'] === "undefined") {
                         throw "In order to utilize pointer lock, provide convas in options!";
                     }
                     this.useMouse = false;

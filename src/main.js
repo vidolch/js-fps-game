@@ -4,8 +4,9 @@ import { UI } from './UI';
 
 // Benchmark
 import { Stats } from './Utils/Stats';
-
 import { map1 } from './config';
+import { ImageAsset } from './Rendering/ImageAsset';
+import { GLOBAL_ASSETS, AreAllAssetsLoaded } from './Globals';
 
 export class Game {
     constructor() {
@@ -31,13 +32,22 @@ export class Game {
         }
 
         this.map = map1;
-
-        this.ui = new UI(this.renderer, this.map, this.player);
-
+        this.ui = new UI(this.map, this.player);
         this.middleCorrdinates = {};
+        GLOBAL_ASSETS.push(new ImageAsset('wall_sprite', './sprites/wall3.bmp'));
 
         this.createControls();
-        this.move();
+        this.start();
+    }
+
+    start(callback) {
+        if(AreAllAssetsLoaded()) {
+            this.move();
+        } else {
+            setTimeout(() => {
+                this.start();
+            }, 100);
+        }
     }
 
     move() {
@@ -47,7 +57,6 @@ export class Game {
 
         this.mainScreen(0, this.screenWidth);
 
-        this.ui.drawMiniMap(this.middleCorrdinates);
         this.ui.drawUI(this.middleCorrdinates);
 
         let self = this;
@@ -69,7 +78,7 @@ export class Game {
 
         for (let i = from; i < to; i++) {
             fRayAngle = (this.player.angle - this.fFOV / 2.0) + (i / this.screenWidth) * this.fFOV;
-            stepSize = 0.1;
+            stepSize = 0.05;
             distanceToWall = 0.0;
             bHitWall = false;		// Set when ray hits wall block
             eyeX = Math.sin(fRayAngle); // Unit vector for ray in player space
@@ -136,9 +145,11 @@ export class Game {
                 } else {} // Floor
             }
             
-            this.renderer.renderImage(
-                fSampleX, 0,
-                1, 288,
+            this.renderer.renderImage({
+                    X: fSampleX, Y: 0,
+                    W: 1, H: 288,
+                    i: 'wall_sprite'
+                },
                 i, firstY,
                 1, heightToDraw, {
                     shadeLevel: shadeLevel

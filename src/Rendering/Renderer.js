@@ -1,4 +1,5 @@
 import { VisualUtils } from './VisualUtils.js';
+import { GLOBAL_ASSETS, GetAsset } from '../Globals';
 
 export class Renderer {
     constructor(canvas, options) {
@@ -12,8 +13,6 @@ export class Renderer {
       
         this.nCeiling = 0;
         this.nFloor = 0;
-        this.wallTexture = document.getElementById('source');
-        this.shoutGun = document.getElementById('shotgun');
         this.offScreen = false;
     }
 
@@ -29,6 +28,10 @@ export class Renderer {
         this.context.fillStyle = color;
     }
 
+    clearAll() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
     renderGlobals() {
         this.context.fillStyle = 'rgb(44, 107, 255)';
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -40,16 +43,16 @@ export class Renderer {
         this.context.fillRect(0, this.canvas.height / 2, this.canvas.width, this.canvas.height / 2);
         this.context.fillStyle = 'black';
     }
-    renderImage(imageX, imageY, imageWidth, imageHeight, spaceX, spaceY, spaceWidth, spaceHeight, options) {
+    renderImage(image, spaceX, spaceY, spaceWidth, spaceHeight, options) {
         let renderContext = this.offScreen ? this.canvas.offscreenContext : this.context;
-        if (typeof options !== undefined && options.hasOwnProperty('shadeLevel') && options['shadeLevel'] < 0.99) {
+        if (this.shouldImageBeRendered(options)) {
             renderContext.drawImage(
-                this.wallTexture,
-                imageX,imageY, imageWidth, imageHeight,
+                GetAsset(image.i).image,
+                image.X,image.Y, image.W, image.H,
                 spaceX, spaceY, spaceWidth, spaceHeight);
         }
         
-        if (typeof options !== undefined) {
+        if (typeof options !== "undefined") {
             if (options.hasOwnProperty('shadeLevel')) {
                 
                 renderContext.fillStyle = 'rgba(0, 0, 0, ' + options['shadeLevel'] + ')';
@@ -57,11 +60,9 @@ export class Renderer {
             }
         }
     }
-    renderImage2(imageX, imageY, imageWidth, imageHeight, spaceX, spaceY, spaceWidth, spaceHeight) {
-        this.context.drawImage(
-            this.shoutGun,
-            imageX,imageY, imageWidth, imageHeight,
-            spaceX, spaceY, spaceWidth, spaceHeight);
+
+    shouldImageBeRendered(options) {
+        return (typeof options !== "undefined" && options.hasOwnProperty('shadeLevel') && options['shadeLevel'] < 0.99);
     }
 
     renderRect(x, y, w, h) {
