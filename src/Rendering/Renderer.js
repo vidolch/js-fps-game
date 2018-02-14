@@ -44,7 +44,7 @@ export class Renderer {
         this.context.fillStyle = 'black';
     }
     renderImage(image, spaceX, spaceY, spaceWidth, spaceHeight, options) {
-        let renderContext = this.offScreen ? this.canvas.offscreenContext : this.context;
+        let renderContext = this.getRenderContext();
         if (this.shouldImageBeRendered(options)) {
             renderContext.drawImage(
                 GetAsset(image.i).image,
@@ -59,6 +59,25 @@ export class Renderer {
                 renderContext.fillRect(spaceX, spaceY, spaceWidth, spaceHeight);
             }
         }
+    }
+
+    renderUnicodeAsset(asset, spaceX, spaceY, width, height) {
+        let renderContext = this.getRenderContext();
+        renderContext.fillStyle = 'red';
+        for (let i = 0; i < asset.height; i++) {
+            for (let j = 0; j < asset.width; j++) {
+                if (asset.getCharAt(i, j) === '#') {
+                    renderContext.fillRect(
+                        spaceX + j * (width / asset.width), 
+                        spaceY + i * (height / asset.height), 
+                        width / asset.width, height / asset.height);
+                }                
+            }
+        }
+    }
+
+    getRenderContext() {
+        return this.offScreen ? this.canvas.offscreenContext : this.context;
     }
 
     shouldImageBeRendered(options) {

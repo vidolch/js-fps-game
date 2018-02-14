@@ -41,6 +41,7 @@ export class Game {
         GLOBAL_ASSETS.push(new UnicodeAsset('lamp_cm', sampleSprite));
         this.units = [
             new Unit(10, 10, 0, 0, 'lamp_cm')
+            // new Unit(10, 10, 0, 0, 'lamp')
         ];
 
         this.createControls();
@@ -196,22 +197,18 @@ export class Game {
 			if (bInPlayerFOV && fDistanceFromPlayer >= 0.5 && fDistanceFromPlayer < this.fDepth && !object.remove)
 			{
                 // TODO: Fix this
-				let fObjectCeiling = (this.screenHeight / 2.0) - this.screenHeight / (fDistanceFromPlayer);
+                let fObjectCeiling = (this.screenHeight / 2.0) - this.screenHeight / (fDistanceFromPlayer);
 				let fObjectFloor = this.screenHeight - fObjectCeiling;
 				let fObjectHeight = Math.floor(fObjectFloor - fObjectCeiling);
-				let fObjectAspectRatio = object.image.image.height / object.image.image.width;
+				let fObjectAspectRatio = object.asset.getHeight() / object.asset.getWidth();
 				let fObjectWidth = Math.floor(fObjectHeight / fObjectAspectRatio);
 				let fMiddleOfObject = Math.floor((0.5 * (fObjectAngle / (this.fFOV / 2.0)) + 0.5) * this.screenHeight);
                 fObjectCeiling = Math.floor(fObjectCeiling);
-                object.image.image.width = fObjectWidth;
-                object.image.image.height = fObjectHeight;
 
-                this.renderer.renderImage({
-                        X: 0, Y: 0,
-                        W: fObjectWidth, H: fObjectHeight,
-                        i: object.image.name
-                    },
-                    fMiddleOfObject - (fObjectWidth / 2.0), fObjectCeiling, fObjectWidth, fObjectHeight);
+                this.renderer.renderUnicodeAsset(
+                    object.asset, 
+                    fMiddleOfObject - (fObjectWidth / 2.0), fObjectCeiling, 
+                    fObjectWidth, fObjectHeight);
 				// Draw Lamp
 				// for (let lx = 0; lx < fObjectWidth; lx++)
 				// {
