@@ -6,7 +6,9 @@ import { UI } from './UI';
 import { Stats } from './Utils/Stats';
 import { map1 } from './config';
 import { ImageAsset } from './Rendering/ImageAsset';
-import { GLOBAL_ASSETS, AreAllAssetsLoaded } from './Globals';
+import { GLOBAL_ASSETS, AreAllAssetsLoaded, sampleSprite } from './Globals';
+import { Unit } from './Unit';
+import { UnicodeAsset } from './Rendering/UnicodeAsset';
 
 export class Game {
     constructor() {
@@ -28,13 +30,18 @@ export class Game {
         this.player = {
             posX: 8,
             posY: 8,
-            angle: 0
+            angle: 0.71
         }
 
         this.map = map1;
         this.ui = new UI(this.map, this.player);
         this.middleCorrdinates = {};
         GLOBAL_ASSETS.push(new ImageAsset('wall_sprite', './sprites/wall3.bmp'));
+        GLOBAL_ASSETS.push(new ImageAsset('lamp', './sprites/lamp-min2.png'));
+        GLOBAL_ASSETS.push(new UnicodeAsset('lamp_cm', sampleSprite));
+        this.units = [
+            new Unit(10, 10, 0, 0, 'lamp_cm')
+        ];
 
         this.createControls();
         this.start();
@@ -56,8 +63,9 @@ export class Game {
         this.renderer.renderGlobals();
 
         this.mainScreen(0, this.screenWidth);
+        // this.objects();
 
-        this.ui.drawUI(this.middleCorrdinates);
+        this.ui.drawUI(this.middleCorrdinates, this.units);
 
         let self = this;
         this.stats.end();
@@ -83,7 +91,7 @@ export class Game {
             bHitWall = false;		// Set when ray hits wall block
             eyeX = Math.sin(fRayAngle); // Unit vector for ray in player space
             eyeY = Math.cos(fRayAngle);
-            if(i === this.screenWidth / 2) this.middleCorrdinates = {x: eyeX, y: eyeY}; 
+            if(i === to / 2) this.middleCorrdinates = {x: eyeX, y: eyeY}; 
 
             let fSampleX = 0.0;
             // Incrementally cast ray from player, along ray angle, testing for 
@@ -155,6 +163,74 @@ export class Game {
                     shadeLevel: shadeLevel
                 });
         }
+
+        for (let i = 0; i < this.units.length; i++)
+		{
+            let object = this.units[i];
+			// Update Object Physics
+			object.x += object.vx * 0.5;
+			object.y += object.vy * 0.5;
+
+			// Check if object is inside wall - set flag for removal
+			if (this.map.surface[object.x * this.map.mapWidth + object.y] === '#')
+				object.remove = true;
+						
+			// Can object be seen?
+			let fVecX = object.x - this.player.posX;
+			let fVecY = object.y - this.player.posY;
+			let fDistanceFromPlayer = Math.sqrt(fVecX*fVecX + fVecY*fVecY);
+
+			let fEyeX = Math.sin(this.player.angle);
+			let fEyeY = Math.cos(this.player.angle);
+
+			// Calculate angle between lamp and players feet, and players looking direction
+			// to determine if the lamp is in the players field of view
+			let fObjectAngle = Math.atan2(fEyeY, fEyeX) - Math.atan2(fVecY, fVecX);
+			if (fObjectAngle < -3.14159)
+				fObjectAngle += 2.0 * 3.14159;
+			if (fObjectAngle > 3.14159)
+				fObjectAngle -= 2.0 * 3.14159;
+
+			let bInPlayerFOV = Math.abs(fObjectAngle) < this.fFOV / 2.0;
+
+			if (bInPlayerFOV && fDistanceFromPlayer >= 0.5 && fDistanceFromPlayer < this.fDepth && !object.remove)
+			{
+                // TODO: Fix this
+				let fObjectCeiling = (this.screenHeight / 2.0) - this.screenHeight / (fDistanceFromPlayer);
+				let fObjectFloor = this.screenHeight - fObjectCeiling;
+				let fObjectHeight = Math.floor(fObjectFloor - fObjectCeiling);
+				let fObjectAspectRatio = object.image.image.height / object.image.image.width;
+				let fObjectWidth = Math.floor(fObjectHeight / fObjectAspectRatio);
+				let fMiddleOfObject = Math.floor((0.5 * (fObjectAngle / (this.fFOV / 2.0)) + 0.5) * this.screenHeight);
+                fObjectCeiling = Math.floor(fObjectCeiling);
+                object.image.image.width = fObjectWidth;
+                object.image.image.height = fObjectHeight;
+
+                this.renderer.renderImage({
+                        X: 0, Y: 0,
+                        W: fObjectWidth, H: fObjectHeight,
+                        i: object.image.name
+                    },
+                    fMiddleOfObject - (fObjectWidth / 2.0), fObjectCeiling, fObjectWidth, fObjectHeight);
+				// Draw Lamp
+				// for (let lx = 0; lx < fObjectWidth; lx++)
+				// {
+				// 	for (let ly = 0; ly < fObjectHeight; ly++)
+				// 	{
+				// 		float fSampleX = lx / fObjectWidth;
+				// 		float fSampleY = ly / fObjectHeight;
+				// 		wchar_t c = object.sprite->SampleGlyph(fSampleX, fSampleY);
+				// 		int nObjectColumn = (int)(fMiddleOfObject + lx - (fObjectWidth / 2.0));
+				// 		if (nObjectColumn >= 0 && nObjectColumn < ScreenWidth())
+				// 			if (c != L' ' && fDepthBuffer[nObjectColumn] >= fDistanceFromPlayer)
+				// 			{							
+				// 				Draw(nObjectColumn, fObjectCeiling + ly, c, object.sprite->SampleColour(fSampleX, fSampleY));
+				// 				fDepthBuffer[nObjectColumn] = fDistanceFromPlayer;
+				// 			}
+				// 	}
+				// }
+			}
+		}
 
         this.renderer.endOffScreen();
     }

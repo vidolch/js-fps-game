@@ -62,7 +62,7 @@ export class Renderer {
     }
 
     shouldImageBeRendered(options) {
-        return (typeof options !== "undefined" && options.hasOwnProperty('shadeLevel') && options['shadeLevel'] < 0.99);
+        return typeof options === "undefined" || (typeof options !== "undefined" && options.hasOwnProperty('shadeLevel') && options['shadeLevel'] < 0.99);
     }
 
     renderRect(x, y, w, h) {

@@ -14,12 +14,17 @@ export class UI {
         this.minimapScale = 4;
         GLOBAL_ASSETS.push(new ImageAsset('gun_sprite', './sprites/shotgun.png'));
     }
-    drawMiniMap(middleCorrdinates) {
+    drawMiniMap(middleCorrdinates, units) {
         this.renderer.setFillStyle('white');
         for (let nx = 0; nx < this.map.mapWidth; nx++) {
             for (let ny = 0; ny < this.map.mapHeight; ny++) {
                 if (this.map.surface[ny * this.map.mapWidth + nx] === '#') {
-                    this.renderer.renderRect((nx * 4) + this.minimapOffset.x, (ny * 4) + this.minimapOffset.y, this.minimapScale, this.minimapScale);
+                    this.renderer.renderRect((nx * this.minimapScale) + this.minimapOffset.x, (ny * this.minimapScale) + this.minimapOffset.y, this.minimapScale, this.minimapScale);
+                }
+                if(units.filter((u) => u.x === nx && u.y === ny).length > 0) {
+                    this.renderer.setFillStyle('yellow');
+                    this.renderer.renderRect((nx * this.minimapScale) + this.minimapOffset.x, (ny * this.minimapScale) + this.minimapOffset.y, this.minimapScale, this.minimapScale);
+                    this.renderer.setFillStyle('white');
                 }
             }
         }
@@ -38,15 +43,18 @@ export class UI {
         ], 'red');
         this.renderer.setFillStyle('black');
     }
-    async drawUI(middleCorrdinates) {
+    async drawUI(middleCorrdinates, units) {
         this.renderer.clearAll();
-        this.drawMiniMap(middleCorrdinates);
-        this.renderer.renderImage({
-                X: 0, Y: 0,
-                W:500, W: 307,
-                i: 'gun_sprite'
-            },            
-            this.renderer.getWidth() / 2 -20, this.renderer.getHeight() - 307,
-            500, 307);
+        this.drawMiniMap(middleCorrdinates, units);
+        // this.renderer.renderImage({
+        //         X: 0, Y: 0,
+        //         W:500, H: 307,
+        //         i: 'gun_sprite'
+        //     },            
+        //     this.renderer.getWidth() / 2 -20, this.renderer.getHeight() - 307,
+        //     500, 307);
+        this.renderer.setFillStyle('white');
+        this.renderer.renderRect(this.renderer.getWidth() / 2 - 15, this.renderer.getHeight() / 2 - 2, 30, 4);
+        this.renderer.renderRect(this.renderer.getWidth() / 2 - 2, this.renderer.getHeight() / 2 - 15, 4, 30);
     }
 }

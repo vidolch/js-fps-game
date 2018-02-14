@@ -15,3 +15,21 @@ export let AreAllAssetsLoaded = function(name) {
         return asset.isComplete();
     }).length === GLOBAL_ASSETS.length;
 }
+
+export let sampleSprite;
+sampleSprite = [
+    '##..##..##',
+    '##..##..##',
+    '.##.##.##.',
+    '..######..',
+    '....##....',
+    '....##....',
+    '....##....',
+    '....##....',
+    '....##....',
+    '....##....',
+    '....##....',
+    '....##....',
+    '....##....',
+    '....##....'
+];
