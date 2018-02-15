@@ -20,7 +20,7 @@ export class Game {
         this.controls;
         this.renderer = new Renderer(document.getElementById("mainScreen"));
 
-        this.fFOV = 3.14159 / 4.0;	// Field of View
+        this.fFOV = Math.PI / 4.0;	// Field of View
         this.fSpeed = 2;
         this.fDepth = 25;			// Maximum rendering distance
         
@@ -30,7 +30,7 @@ export class Game {
         this.player = {
             posX: 8,
             posY: 8,
-            angle: 0.71
+            angle: 0.375
         }
 
         this.map = map1;
@@ -178,8 +178,8 @@ export class Game {
 						
 			// Can object be seen?
 			let fVecX = object.x - this.player.posX;
-			let fVecY = object.y - this.player.posY;
-			let fDistanceFromPlayer = Math.sqrt(fVecX*fVecX + fVecY*fVecY);
+            let fVecY = object.y - this.player.posY;
+			let fDistanceFromPlayer = Math.hypot(fVecX, fVecY);
 
 			let fEyeX = Math.sin(this.player.angle);
 			let fEyeY = Math.cos(this.player.angle);
@@ -187,12 +187,12 @@ export class Game {
 			// Calculate angle between lamp and players feet, and players looking direction
 			// to determine if the lamp is in the players field of view
 			let fObjectAngle = Math.atan2(fEyeY, fEyeX) - Math.atan2(fVecY, fVecX);
-			if (fObjectAngle < -3.14159)
-				fObjectAngle += 2.0 * 3.14159;
-			if (fObjectAngle > 3.14159)
-				fObjectAngle -= 2.0 * 3.14159;
-
-			let bInPlayerFOV = Math.abs(fObjectAngle) < this.fFOV / 2.0;
+			if (fObjectAngle < -Math.PI)
+				fObjectAngle += 2.0 * Math.PI;
+			if (fObjectAngle > Math.PI)
+                fObjectAngle -= 2.0 * Math.PI;
+                
+			let bInPlayerFOV = Math.abs(fObjectAngle) < (this.fFOV);
 
 			if (bInPlayerFOV && fDistanceFromPlayer >= 0.5 && fDistanceFromPlayer < this.fDepth && !object.remove)
 			{
