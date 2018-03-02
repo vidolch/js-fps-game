@@ -10,7 +10,7 @@ export class Renderer {
 
         this.canvas = canvas;
         this.context = this.canvas.getContext("2d");
-      
+
         this.nCeiling = 0;
         this.nFloor = 0;
         this.offScreen = false;
@@ -48,30 +48,42 @@ export class Renderer {
         if (this.shouldImageBeRendered(options)) {
             renderContext.drawImage(
                 GetAsset(image.i).image,
-                image.X,image.Y, image.W, image.H,
+                image.X, image.Y, image.W, image.H,
                 spaceX, spaceY, spaceWidth, spaceHeight);
         }
-        
+
         if (typeof options !== "undefined") {
             if (options.hasOwnProperty('shadeLevel')) {
-                
+
                 renderContext.fillStyle = 'rgba(0, 0, 0, ' + options['shadeLevel'] + ')';
                 renderContext.fillRect(spaceX, spaceY, spaceWidth, spaceHeight);
             }
         }
     }
 
-    renderUnicodeAsset(asset, spaceX, spaceY, width, height) {
+    renderUnicodeAsset(asset, spaceX, spaceY, width, height, fMiddleOfObject, fDistanceFromPlayer, fDepthBuffer, shadeLevel) {
         let renderContext = this.getRenderContext();
-        renderContext.fillStyle = 'red';
-        for (let i = 0; i < asset.height; i++) {
-            for (let j = 0; j < asset.width; j++) {
-                if (asset.getCharAt(i, j) === '#') {
-                    renderContext.fillRect(
-                        spaceX + j * (width / asset.width), 
-                        spaceY + i * (height / asset.height), 
-                        width / asset.width, height / asset.height);
-                }                
+        for (let ly = 0; ly < asset.height; ly++) {
+            for (let lx = 0; lx < asset.width; lx++) {
+                let fSampleX = lx / asset.width;
+                let fSampleY = ly / asset.height;
+                let nObjectColumn = Math.round(fMiddleOfObject + lx - (asset.width / 2.0));
+                if (nObjectColumn >= 0 && nObjectColumn < this.getWidth()) {
+                    if (asset.getCharAt(ly, lx) === '#' && fDepthBuffer[nObjectColumn] >= fDistanceFromPlayer) {
+                        fDepthBuffer[nObjectColumn] = fDistanceFromPlayer;
+                        
+                        renderContext.fillStyle = 'red';
+                        renderContext.fillRect(
+                            spaceX + lx * (width / asset.width),
+                            spaceY + ly * (height / asset.height),
+                            width / asset.width, height / asset.height);
+                        renderContext.fillStyle = 'rgba(0, 0, 0, ' + shadeLevel + ')';
+                        renderContext.fillRect(
+                            spaceX + lx * (width / asset.width),
+                            spaceY + ly * (height / asset.height),
+                            width / asset.width, height / asset.height);
+                    }
+                }
             }
         }
     }
@@ -91,14 +103,14 @@ export class Renderer {
     renderLine(coordinates, lineColor) {
         this.context.beginPath();
         this.context.moveTo(coordinates[0].x, coordinates[0].y);
-        
+
         for (let i = 1; i < coordinates.length; i++) {
             this.context.lineTo(
                 coordinates[i].x,
                 coordinates[i].y
             );
         }
-       
+
         this.context.strokeStyle = lineColor;
         this.context.stroke();
     }

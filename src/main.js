@@ -26,6 +26,7 @@ export class Game {
         
         this.screenWidth = this.renderer.getWidth();
         this.screenHeight = this.renderer.getHeight();
+		this.fDepthBuffer = [];
 
         this.player = {
             posX: 8,
@@ -142,6 +143,7 @@ export class Game {
 
             // Shader walls based on distance
             let shadeLevel = (distanceToWall * 0.1).toFixed(2);
+			this.fDepthBuffer[i] = distanceToWall;
 
             let heightToDraw = 0;
             let firstY = -1;
@@ -193,6 +195,7 @@ export class Game {
                 fObjectAngle -= 2.0 * Math.PI;
                 
 			let bInPlayerFOV = Math.abs(fObjectAngle) < (this.fFOV);
+            let shadeLevel = (fDistanceFromPlayer * 0.1).toFixed(2);
 
 			if (bInPlayerFOV && fDistanceFromPlayer >= 0.5 && fDistanceFromPlayer < this.fDepth && !object.remove)
 			{
@@ -202,30 +205,17 @@ export class Game {
 				let fObjectHeight = Math.floor(fObjectFloor - fObjectCeiling);
 				let fObjectAspectRatio = object.asset.getHeight() / object.asset.getWidth();
 				let fObjectWidth = Math.floor(fObjectHeight / fObjectAspectRatio);
-				let fMiddleOfObject = Math.floor((0.5 * (fObjectAngle / (this.fFOV / 2.0)) + 0.5) * this.screenHeight);
+				let fMiddleOfObject = Math.floor((0.5 * (fObjectAngle / (this.fFOV / 2.0)) + 0.5) * this.screenWidth);
                 fObjectCeiling = Math.floor(fObjectCeiling);
 
                 this.renderer.renderUnicodeAsset(
-                    object.asset, 
-                    fMiddleOfObject - (fObjectWidth / 2.0), fObjectCeiling, 
-                    fObjectWidth, fObjectHeight);
-				// Draw Lamp
-				// for (let lx = 0; lx < fObjectWidth; lx++)
-				// {
-				// 	for (let ly = 0; ly < fObjectHeight; ly++)
-				// 	{
-				// 		float fSampleX = lx / fObjectWidth;
-				// 		float fSampleY = ly / fObjectHeight;
-				// 		wchar_t c = object.sprite->SampleGlyph(fSampleX, fSampleY);
-				// 		int nObjectColumn = (int)(fMiddleOfObject + lx - (fObjectWidth / 2.0));
-				// 		if (nObjectColumn >= 0 && nObjectColumn < ScreenWidth())
-				// 			if (c != L' ' && fDepthBuffer[nObjectColumn] >= fDistanceFromPlayer)
-				// 			{							
-				// 				Draw(nObjectColumn, fObjectCeiling + ly, c, object.sprite->SampleColour(fSampleX, fSampleY));
-				// 				fDepthBuffer[nObjectColumn] = fDistanceFromPlayer;
-				// 			}
-				// 	}
-				// }
+                    object.asset, // the asset
+                    fMiddleOfObject - (fObjectWidth / 2.0), fObjectCeiling,  // X and Y coordinates
+                    fObjectWidth, fObjectHeight, // Dimentions
+                    fMiddleOfObject, // middle of the object
+                    fDistanceFromPlayer, // distance between player and object
+                    this.fDepthBuffer,
+                    shadeLevel); // the depth buffer
 			}
 		}
 
