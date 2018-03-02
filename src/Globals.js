@@ -1,6 +1,7 @@
 import { ImageAsset } from "./Rendering/ImageAsset";
 
 export let GLOBAL_ASSETS = [];
+export let ALL_LOADED = true;
 export let GetAsset = function(name) {
     let result = GLOBAL_ASSETS.filter((asset) => {
         return asset.name === name;
@@ -13,27 +14,5 @@ export let GetAsset = function(name) {
 export let AreAllAssetsLoaded = function(name) {
     return GLOBAL_ASSETS.filter((asset) => {
         return asset.isComplete();
-    }).length === GLOBAL_ASSETS.length;
+    }).length === GLOBAL_ASSETS.length && ALL_LOADED;
 }
-
-export let sampleSprite;
-sampleSprite = [
-    '##..##..##',
-    '##..##..##',
-    '.##.##.##.',
-    '..######..',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....',
-    '....##....'
-];

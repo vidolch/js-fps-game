@@ -6,9 +6,10 @@ import { UI } from './UI';
 import { Stats } from './Utils/Stats';
 import { map1 } from './config';
 import { ImageAsset } from './Rendering/ImageAsset';
-import { GLOBAL_ASSETS, AreAllAssetsLoaded, sampleSprite } from './Globals';
+import { GLOBAL_ASSETS, AreAllAssetsLoaded, sampleSprite, ALL_LOADED } from './Globals';
 import { Unit } from './Unit';
 import { UnicodeAsset } from './Rendering/UnicodeAsset';
+import { FileLoader } from './FileLoader.js';
 
 export class Game {
     constructor() {
@@ -39,7 +40,12 @@ export class Game {
         this.middleCorrdinates = {};
         GLOBAL_ASSETS.push(new ImageAsset('wall_sprite', './sprites/wall3.bmp'));
         GLOBAL_ASSETS.push(new ImageAsset('lamp', './sprites/lamp-min2.png'));
-        GLOBAL_ASSETS.push(new UnicodeAsset('lamp_cm', sampleSprite));
+        GLOBAL_ASSETS.ALL_LOADED = false;
+        FileLoader.loadJSON('../assets/lamp.json', (jsonText) => {
+            GLOBAL_ASSETS.ALL_LOADED = true;
+            GLOBAL_ASSETS.push(new UnicodeAsset('lamp_cm', JSON.parse(jsonText)));
+        });
+        
         this.units = [
             new Unit(10, 10, 0, 0, 'lamp_cm')
             // new Unit(10, 10, 0, 0, 'lamp')
