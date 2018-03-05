@@ -5,8 +5,8 @@ export class UnicodeAsset extends Asset {
         super(name);
         this.charmap = charmap;
         this.loaded = true;
-        this.height = this.charmap.length;
-        this.width = this.charmap[0].length;
+        this.rows = this.charmap.length;
+        this.cols = this.charmap[0].length;
         this.scale = scale || 10;
     }
     getCharAt(row, col) {
@@ -16,9 +16,9 @@ export class UnicodeAsset extends Asset {
         this.charmap[row][col] = char;
     }
     getHeight() {
-        return this.height * this.scale;
+        return this.rows * this.scale;
     }
     getWidth() {
-        return this.width * this.scale;
+        return this.cols * this.scale;
     }
 }

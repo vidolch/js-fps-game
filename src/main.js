@@ -30,9 +30,7 @@ export class Game {
 		this.fDepthBuffer = [];
 
         this.player = {
-            posX: 8,
-            posY: 8,
-            angle: 0.375
+            posX: 7.183800517628895, posY: 9.920172052706125, angle: 0.5000000000000023
         }
 
         this.map = map1;
@@ -40,16 +38,18 @@ export class Game {
         this.middleCorrdinates = {};
         GLOBAL_ASSETS.push(new ImageAsset('wall_sprite', './sprites/wall3.bmp'));
         GLOBAL_ASSETS.push(new ImageAsset('lamp', './sprites/lamp-min2.png'));
+        let self = this;
+        this.units = [];
+
         GLOBAL_ASSETS.ALL_LOADED = false;
-        FileLoader.loadJSON('../assets/lamp.json', (jsonText) => {
+    
+        FileLoader.loadJSON('../assets/objects/lamp.json', (jsonText) => {
+            GLOBAL_ASSETS.push(new UnicodeAsset('lamp_cm', JSON.parse(jsonText), 0.5));
+            self.units.push(new Unit(11, 14, 0, 0, 'lamp_cm'));
             GLOBAL_ASSETS.ALL_LOADED = true;
-            GLOBAL_ASSETS.push(new UnicodeAsset('lamp_cm', JSON.parse(jsonText)));
         });
+
         
-        this.units = [
-            new Unit(10, 10, 0, 0, 'lamp_cm')
-            // new Unit(10, 10, 0, 0, 'lamp')
-        ];
 
         this.createControls();
         this.start();
@@ -70,8 +70,10 @@ export class Game {
 
         this.renderer.renderGlobals();
 
+        this.renderer.beginOffScreen();
         this.mainScreen(0, this.screenWidth);
-        // this.objects();
+        this.handleObjects();
+        this.renderer.endOffScreen();
 
         this.ui.drawUI(this.middleCorrdinates, this.units);
 
@@ -89,8 +91,6 @@ export class Game {
         let eyeY = 0;
         let nTestX = 0;
         let nTestY = 0;
-
-        this.renderer.beginOffScreen();
 
         for (let i = from; i < to; i++) {
             fRayAngle = (this.player.angle - this.fFOV / 2.0) + (i / this.screenWidth) * this.fFOV;
@@ -172,6 +172,9 @@ export class Game {
                     shadeLevel: shadeLevel
                 });
         }
+    }
+
+    handleObjects() {
 
         for (let i = 0; i < this.units.length; i++)
 		{
@@ -185,8 +188,8 @@ export class Game {
 				object.remove = true;
 						
 			// Can object be seen?
-			let fVecX = object.x - this.player.posX;
-            let fVecY = object.y - this.player.posY;
+			let fVecX = (object.x) - this.player.posX;
+            let fVecY = (object.y) - this.player.posY;
 			let fDistanceFromPlayer = Math.hypot(fVecX, fVecY);
 
 			let fEyeX = Math.sin(this.player.angle);
@@ -200,7 +203,7 @@ export class Game {
 			if (fObjectAngle > Math.PI)
                 fObjectAngle -= 2.0 * Math.PI;
                 
-			let bInPlayerFOV = Math.abs(fObjectAngle) < (this.fFOV);
+			let bInPlayerFOV = Math.abs(fObjectAngle) < (this.fFOV) / 2;
             let shadeLevel = (fDistanceFromPlayer * 0.1).toFixed(2);
 
 			if (bInPlayerFOV && fDistanceFromPlayer >= 0.5 && fDistanceFromPlayer < this.fDepth && !object.remove)
@@ -220,12 +223,10 @@ export class Game {
                     fObjectWidth, fObjectHeight, // Dimentions
                     fMiddleOfObject, // middle of the object
                     fDistanceFromPlayer, // distance between player and object
-                    this.fDepthBuffer,
-                    shadeLevel); // the depth buffer
+                    this.fDepthBuffer, // the depth buffer
+                    shadeLevel); // the shade level
 			}
 		}
-
-        this.renderer.endOffScreen();
     }
 
     createControls() {

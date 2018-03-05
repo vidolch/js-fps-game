@@ -63,25 +63,26 @@ export class Renderer {
 
     renderUnicodeAsset(asset, spaceX, spaceY, width, height, fMiddleOfObject, fDistanceFromPlayer, fDepthBuffer, shadeLevel) {
         let renderContext = this.getRenderContext();
-        for (let ly = 0; ly < asset.height; ly++) {
-            for (let lx = 0; lx < asset.width; lx++) {
-                let fSampleX = lx / asset.width;
-                let fSampleY = ly / asset.height;
-                let nObjectColumn = Math.round(fMiddleOfObject + lx - (asset.width / 2.0));
+        for (let ly = 0; ly < asset.rows; ly++) {
+            for (let lx = 0; lx < asset.cols; lx++) {
+                let proportialWidth = width / asset.cols;
+                let proportialHeight = height / asset.rows;
+
+                let nObjectColumn = Math.round(fMiddleOfObject + lx - (width / 2));
                 if (nObjectColumn >= 0 && nObjectColumn < this.getWidth()) {
-                    if (asset.getCharAt(ly, lx) === '#' && fDepthBuffer[nObjectColumn] >= fDistanceFromPlayer) {
+                    if (asset.getCharAt(ly, lx) !== '.' && fDepthBuffer[nObjectColumn] >= fDistanceFromPlayer) {
                         fDepthBuffer[nObjectColumn] = fDistanceFromPlayer;
                         
-                        renderContext.fillStyle = 'red';
+                        let renderX = spaceX + (lx * proportialWidth);
+                        let renderY = spaceY + (ly * proportialHeight);
+                        renderContext.fillStyle = asset.getCharAt(ly, lx);
                         renderContext.fillRect(
-                            spaceX + lx * (width / asset.width),
-                            spaceY + ly * (height / asset.height),
-                            width / asset.width, height / asset.height);
+                            renderX, renderY,
+                            proportialWidth, proportialHeight);
                         renderContext.fillStyle = 'rgba(0, 0, 0, ' + shadeLevel + ')';
                         renderContext.fillRect(
-                            spaceX + lx * (width / asset.width),
-                            spaceY + ly * (height / asset.height),
-                            width / asset.width, height / asset.height);
+                            renderX, renderY,
+                            proportialWidth, proportialHeight);
                     }
                 }
             }
