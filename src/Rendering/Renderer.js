@@ -14,6 +14,7 @@ export class Renderer {
         this.nCeiling = 0;
         this.nFloor = 0;
         this.offScreen = false;
+        this.yAngle = 0;
     }
 
     getWidth() {
@@ -33,14 +34,15 @@ export class Renderer {
     }
 
     renderGlobals() {
+        let middleLine = this.canvas.height / 2 + this.yAngle;
         this.context.fillStyle = 'rgb(44, 107, 255)';
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        var linearGradient1 = this.context.createLinearGradient(0, this.canvas.height, 0, this.canvas.height / 2);
+        var linearGradient1 = this.context.createLinearGradient(0, this.canvas.height, 0, middleLine);
         linearGradient1.addColorStop(0, 'rgb(147, 67, 2)');
         linearGradient1.addColorStop(0.65, VisualUtils.shadeBlendConvert(-0.8, 'rgb(147, 67, 2)'));
         linearGradient1.addColorStop(1, 'rgb(0, 0, 0)');
         this.context.fillStyle = linearGradient1;
-        this.context.fillRect(0, this.canvas.height / 2, this.canvas.width, this.canvas.height / 2);
+        this.context.fillRect(0, middleLine, this.canvas.width, this.canvas.height - middleLine);
         this.context.fillStyle = 'black';
     }
     renderImage(image, spaceX, spaceY, spaceWidth, spaceHeight, options) {
@@ -49,14 +51,14 @@ export class Renderer {
             renderContext.drawImage(
                 GetAsset(image.i).image,
                 image.X, image.Y, image.W, image.H,
-                spaceX, spaceY, spaceWidth, spaceHeight);
+                spaceX, spaceY + this.yAngle, spaceWidth, spaceHeight);
         }
 
         if (typeof options !== "undefined") {
             if (options.hasOwnProperty('shadeLevel')) {
 
                 renderContext.fillStyle = 'rgba(0, 0, 0, ' + options['shadeLevel'] + ')';
-                renderContext.fillRect(spaceX, spaceY, spaceWidth, spaceHeight);
+                renderContext.fillRect(spaceX, spaceY + this.yAngle, spaceWidth, spaceHeight);
             }
         }
     }
@@ -68,7 +70,7 @@ export class Renderer {
                 let proportialWidth = width / asset.cols;
                 let proportialHeight = height / asset.rows;
 
-                let nObjectColumn = Math.round(fMiddleOfObject + lx - (width / 2));
+                let nObjectColumn = Math.round(fMiddleOfObject + lx - (asset.cols / 2));
                 if (nObjectColumn >= 0 && nObjectColumn < this.getWidth()) {
                     if (asset.getCharAt(ly, lx) !== '.' && fDepthBuffer[nObjectColumn] >= fDistanceFromPlayer) {
                         fDepthBuffer[nObjectColumn] = fDistanceFromPlayer;
@@ -77,11 +79,11 @@ export class Renderer {
                         let renderY = spaceY + (ly * proportialHeight);
                         renderContext.fillStyle = asset.getCharAt(ly, lx);
                         renderContext.fillRect(
-                            renderX, renderY,
+                            renderX, renderY + this.yAngle,
                             proportialWidth, proportialHeight);
                         renderContext.fillStyle = 'rgba(0, 0, 0, ' + shadeLevel + ')';
                         renderContext.fillRect(
-                            renderX, renderY,
+                            renderX, renderY + this.yAngle,
                             proportialWidth, proportialHeight);
                     }
                 }

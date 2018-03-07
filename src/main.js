@@ -30,7 +30,9 @@ export class Game {
 		this.fDepthBuffer = [];
 
         this.player = {
-            posX: 7.183800517628895, posY: 9.920172052706125, angle: 0.5000000000000023
+            posX: 7.183800517628895, posY: 9.920172052706125, 
+            angle: 0.5000000000000023,
+            yAngle: 0
         }
 
         this.map = map1;
@@ -46,11 +48,14 @@ export class Game {
         FileLoader.loadJSON('../assets/objects/lamp.json', (jsonText) => {
             GLOBAL_ASSETS.push(new UnicodeAsset('lamp_cm', JSON.parse(jsonText), 0.5));
             self.units.push(new Unit(11, 14, 0, 0, 'lamp_cm'));
-            GLOBAL_ASSETS.ALL_LOADED = true;
+    
+            FileLoader.loadJSON('../assets/objects/lamp.json', (jsonText) => {
+                GLOBAL_ASSETS.push(new UnicodeAsset('rocket', JSON.parse(jsonText), 0.5));
+                GLOBAL_ASSETS.ALL_LOADED = true;
+            });
         });
-
         
-
+      
         this.createControls();
         this.start();
     }
@@ -67,7 +72,7 @@ export class Game {
 
     move() {
         this.stats.begin();
-
+        this.renderer.yAngle = this.player.yAngle;
         this.renderer.renderGlobals();
 
         this.renderer.beginOffScreen();
@@ -211,11 +216,10 @@ export class Game {
                 // TODO: Fix this
                 let fObjectCeiling = (this.screenHeight / 2.0) - this.screenHeight / (fDistanceFromPlayer);
 				let fObjectFloor = this.screenHeight - fObjectCeiling;
-				let fObjectHeight = Math.floor(fObjectFloor - fObjectCeiling);
+				let fObjectHeight = fObjectFloor - fObjectCeiling;
 				let fObjectAspectRatio = object.asset.getHeight() / object.asset.getWidth();
-				let fObjectWidth = Math.floor(fObjectHeight / fObjectAspectRatio);
-				let fMiddleOfObject = Math.floor((0.5 * (fObjectAngle / (this.fFOV / 2.0)) + 0.5) * this.screenWidth);
-                fObjectCeiling = Math.floor(fObjectCeiling);
+				let fObjectWidth = fObjectHeight / fObjectAspectRatio;
+                let fMiddleOfObject = (0.5 * (fObjectAngle / (this.fFOV / 2.0)) + 0.5) * this.screenWidth;
 
                 this.renderer.renderUnicodeAsset(
                     object.asset, // the asset
@@ -275,6 +279,12 @@ export class Game {
                 self.player.posY -= self.calcNextPlayerPositionY();
             }
         });
+
+        this.controls.bindMousedown(function() {
+			let vx = Math.sin(self.player.angle) * 8;
+			let vy = Math.cos(self.player.angle) * 8;
+            self.units.push(new Unit(self.player.posX, self.player.posX, vx, vy, 'rocket'));
+        })
     }
     calcNextPlayerPositionX() {
         return Math.sin(this.player.angle) * this.fSpeed * 0.1;
@@ -291,6 +301,12 @@ export class Game {
         }
         if(e.movementX < 0) {
             this.player.angle += ( e.movementX) * 0.005;
+        }
+        if(e.movementY > 0) {
+            this.player.yAngle += (e.movementY) * 1;
+        }
+        if(e.movementY < 0) {
+            this.player.yAngle += ( e.movementY) * 1;
         }
     }
 }

@@ -1,6 +1,7 @@
 export class Controls {
     constructor(options) {
         this.keysBindings = {};
+        this.mousedownCallout = undefined;
 
         if(options !== undefined) {
             if(options.hasOwnProperty('pointerLock')) {
@@ -34,6 +35,10 @@ export class Controls {
         }
     }
 
+    bindMousedown(callout) {
+        this.mousedownCallout = callout;
+    }
+
     createEventListeners() {
         let self = this;
         let fElapsedTime = 0.1
@@ -41,6 +46,13 @@ export class Controls {
             e = e || window.event;
             if(self.keysBindings.hasOwnProperty(e.keyCode)) {
                 self.keysBindings[e.keyCode]();
+            }
+        });
+       
+        document.addEventListener("mousedown", function (e) {
+            e = e || window.event;
+            if(self.mousedownCallout !== undefined) {
+                self.mousedownCallout();
             }
         });
        
