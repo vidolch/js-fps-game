@@ -2,13 +2,20 @@ import { VisualUtils } from './VisualUtils.js';
 import { GLOBAL_ASSETS, GetAsset } from '../Globals';
 
 export class Renderer {
-    constructor(canvas, options) {
+    constructor(parentElement, options) {
+        this.parentElement = parentElement
+
         this.options = {
-            resDecrease: 1
+            resDecrease: 1,
+            canvasId: 'mainScreen'
         }
         Object.assign({}, this.options, options);
 
-        this.canvas = canvas;
+        this.canvas = document.createElement('canvas');
+		this.canvas.setAttribute('width',  window.innerWidth);
+		this.canvas.setAttribute('height',  window.innerHeight);
+		this.canvas.setAttribute('id',  this.options.canvasId);
+        this.parentElement.appendChild(this.canvas); 
         this.context = this.canvas.getContext("2d");
 
         this.nCeiling = 0;

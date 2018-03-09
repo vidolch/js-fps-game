@@ -4,7 +4,7 @@ import { GLOBAL_ASSETS } from "./Globals";
 
 export class UI {
     constructor(map, player) {
-        this.renderer = new Renderer(document.getElementById("uiScreen"));
+        this.renderer = new Renderer(document.getElementById("container"), {canvasId:'uiScreen'});
         this.map = map;
         this.player = player;
         this.minimapOffset = {

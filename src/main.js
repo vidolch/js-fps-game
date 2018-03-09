@@ -10,16 +10,18 @@ import { GLOBAL_ASSETS, AreAllAssetsLoaded, sampleSprite, ALL_LOADED } from './G
 import { Unit } from './Unit';
 import { UnicodeAsset } from './Rendering/UnicodeAsset';
 import { FileLoader } from './FileLoader.js';
+import { Not3D } from './Not3D.js';
 
 export class Game {
     constructor() {
+        this.engine = new Not3D(document.getElementById('container'));
         // benchmark script
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         document.body.appendChild( this.stats.dom );
 
         this.controls;
-        this.renderer = new Renderer(document.getElementById("mainScreen"));
+        this.renderer = this.engine.renderer;
 
         this.fFOV = Math.PI / 4.0;	// Field of View
         this.fSpeed = 2;
@@ -49,29 +51,21 @@ export class Game {
             GLOBAL_ASSETS.push(new UnicodeAsset('lamp_cm', JSON.parse(jsonText), 0.5));
             self.units.push(new Unit(11, 14, 0, 0, 'lamp_cm'));
     
-            FileLoader.loadJSON('../assets/objects/lamp.json', (jsonText) => {
+            FileLoader.loadJSON('../assets/objects/rocket.json', (jsonText) => {
                 GLOBAL_ASSETS.push(new UnicodeAsset('rocket', JSON.parse(jsonText), 0.5));
                 GLOBAL_ASSETS.ALL_LOADED = true;
             });
         });
         
       
-        this.createControls();
-        this.start();
+        this.engine.callback = self.move;
+        this.engine.callbackContext = self;
+        this.engine.start();
     }
 
-    start(callback) {
-        if(AreAllAssetsLoaded()) {
-            this.move();
-        } else {
-            setTimeout(() => {
-                this.start();
-            }, 100);
-        }
-    }
+    
 
     move() {
-        this.stats.begin();
         this.renderer.yAngle = this.player.yAngle;
         this.renderer.renderGlobals();
 
@@ -81,10 +75,6 @@ export class Game {
         this.renderer.endOffScreen();
 
         this.ui.drawUI(this.middleCorrdinates, this.units);
-
-        let self = this;
-        this.stats.end();
-        requestAnimationFrame(self.move.bind(self));
     }
 
     mainScreen(from, to) {
@@ -281,8 +271,8 @@ export class Game {
         });
 
         this.controls.bindMousedown(function() {
-			let vx = Math.sin(self.player.angle) * 8;
-			let vy = Math.cos(self.player.angle) * 8;
+			let vx = Math.sin(self.player.angle) * 0.8;
+			let vy = Math.cos(self.player.angle) * 0.8;
             self.units.push(new Unit(self.player.posX, self.player.posX, vx, vy, 'rocket'));
         })
     }
