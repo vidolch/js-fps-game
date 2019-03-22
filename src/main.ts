@@ -8,8 +8,8 @@ import { GLOBAL_ASSETS, SetAllLoaded } from "./Globals";
 import { Unit } from "./Unit";
 import { UnicodeAsset } from "./Rendering/UnicodeAsset";
 import { FileLoader } from "./FileLoader.js";
-import { Not3D } from "./Not3D.js";
 import { Renderer } from "./Rendering/Renderer.js";
+import { Not3D } from "./Not3D";
 
 interface IMovement {
     movementX: number;
@@ -18,7 +18,7 @@ interface IMovement {
 
 class Game {
     engine: Not3D;
-    stats: any;
+    stats: Stats;
     renderer: Renderer;
     fFOV: number;
     fSpeed: number;
@@ -36,11 +36,11 @@ class Game {
     controls: Controls;
 
     constructor() {
-        this.engine = new Not3D(document.getElementById("container"), null, true);
+        this.stats = new Stats();
+        this.engine = new Not3D(document.getElementById("container"), {}, this.stats);
         // benchmark script
-        this.stats = Stats;
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-        document.body.appendChild( this.stats.dom );
+        document.body.appendChild( this.stats.container );
 
         this.renderer = this.engine.renderer;
 
@@ -53,7 +53,8 @@ class Game {
 		this.fDepthBuffer = [];
 
         this.player = {
-            posX: 7.183800517628895, posY: 9.920172052706125,
+            posX: 7.183800517628895,
+            posY: 9.920172052706125,
             angle: 0.5000000000000023,
             yAngle: 0
         };
@@ -78,8 +79,7 @@ class Game {
             });
         });
 
-        this.engine.callback = this.move;
-        this.engine.callbackContext = self;
+        this.engine.setLoop(() => { this.move(); });
         this.engine.start(() => {
             this.createControls();
         });

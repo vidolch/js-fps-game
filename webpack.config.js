@@ -1,6 +1,8 @@
 const path = require('path');
 
 module.exports = {
+  mode: 'development',
+  watch: true,
   entry: './src/main.ts',
   devtool: 'inline-source-map',
   module: {
