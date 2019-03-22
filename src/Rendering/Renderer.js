@@ -9,11 +9,11 @@ export class Renderer {
             resDecrease: 1,
             canvasId: 'mainScreen'
         }
-        Object.assign({}, this.options, options);
+        Object.assign(this.options, options);
 
         this.canvas = document.createElement('canvas');
-		this.canvas.setAttribute('width',  window.innerWidth);
-		this.canvas.setAttribute('height',  window.innerHeight);
+		this.canvas.setAttribute('width',  document.body.clientWidth);
+		this.canvas.setAttribute('height',  document.body.scrollHeight);
 		this.canvas.setAttribute('id',  this.options.canvasId);
         this.parentElement.appendChild(this.canvas); 
         this.context = this.canvas.getContext("2d");

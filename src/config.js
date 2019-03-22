@@ -1,6 +1,7 @@
 export const map1 = {
     mapHeight: 32,
-    mapWidth: 32
+    mapWidth: 32,
+    surface: ""
 }
 map1.surface =  "#########.......#########.......";
 map1.surface += "#...............#...............";

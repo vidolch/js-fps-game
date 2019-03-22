@@ -16,3 +16,6 @@ export let AreAllAssetsLoaded = function(name) {
         return asset.isComplete();
     }).length === GLOBAL_ASSETS.length && ALL_LOADED;
 }
+export let SetAllLoaded = function(loaded) {
+    ALL_LOADED = loaded;
+}
