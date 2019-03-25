@@ -1,4 +1,4 @@
-import { UI } from "../../src/UI";
+import { UI } from "UI";
 import { JSDOM } from "JSDOM";
 
 window = JSDOM.jsdom('<html><head></head><body><div id="rondavu_container"></div></body></html>').createWindow();

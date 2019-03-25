@@ -1,9 +1,13 @@
 export class Asset {
-    constructor(name) {
+    name: string;
+    loaded: boolean;
+
+    constructor(name: string) {
         this.name = name;
         this.loaded = false;
     }
-    isComplete() {
+
+    isComplete(): boolean {
         return this.loaded;
     }
 }

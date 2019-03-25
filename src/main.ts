@@ -1,19 +1,32 @@
-import { Controls } from "./Controls.js";
-import { UI } from "./UI";
+import { Controls } from "./Controls";
+import { UI, Point } from "./UI";
 
 import { Stats } from "./Utils/Stats";
 import { map1 } from "./config";
 import { ImageAsset } from "./Rendering/ImageAsset";
-import { GLOBAL_ASSETS, SetAllLoaded } from "./Globals";
+import { GLOBAL_ASSETS } from "./Globals";
 import { Unit } from "./Unit";
 import { UnicodeAsset } from "./Rendering/UnicodeAsset";
-import { FileLoader } from "./FileLoader.js";
-import { Renderer } from "./Rendering/Renderer.js";
+import { FileLoader } from "./FileLoader";
+import { Renderer, RendererOptions } from "./Rendering/Renderer";
 import { Not3D } from "./Not3D";
 
-interface IMovement {
+export interface IMovement {
     movementX: number;
     movementY: number;
+}
+
+export class GameMap {
+    mapHeight: number;
+    mapWidth: number;
+    surface: string;
+}
+
+export class Player {
+    posX: number;
+    posY: number;
+    angle: number;
+    yAngle: number;
 }
 
 class Game {
@@ -26,10 +39,10 @@ class Game {
     screenWidth: number;
     screenHeight: number;
     fDepthBuffer: number[];
-    player: { posX: number; posY: number; angle: number; yAngle: number; };
-    map: { mapHeight: number; mapWidth: number; surface: string; };
+    player: Player;
+    map: GameMap;
     ui: UI;
-    middleCorrdinates: {};
+    middleCorrdinates: Point;
     units: Unit[];
     nCeiling: number;
     nFloor: number;
@@ -37,7 +50,11 @@ class Game {
 
     constructor() {
         this.stats = new Stats();
-        this.engine = new Not3D(document.getElementById("container"), {}, this.stats);
+        let container: HTMLElement | null = document.getElementById("container");
+        if (container == null) {
+            throw("Container element not found!");
+        }
+        this.engine = new Not3D(container, new RendererOptions(), this.stats);
         // benchmark script
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         document.body.appendChild( this.stats.container );
@@ -50,7 +67,7 @@ class Game {
 
         this.screenWidth = this.renderer.getWidth();
         this.screenHeight = this.renderer.getHeight();
-		this.fDepthBuffer = [];
+        this.fDepthBuffer = [];
 
         this.player = {
             posX: 7.183800517628895,
@@ -61,23 +78,21 @@ class Game {
 
         this.map = map1;
         this.ui = new UI(this.map, this.player);
-        this.middleCorrdinates = {};
+        this.middleCorrdinates = new Point;
+        this.init();
+    }
+
+    async init(): Promise<void> {
         GLOBAL_ASSETS.push(new ImageAsset("wall_sprite", "./sprites/wall3.bmp"));
-        GLOBAL_ASSETS.push(new ImageAsset("lamp", "./sprites/lamp-min2.png"));
 
         this.units = [];
 
-        SetAllLoaded(false);
+        let lampText: string = await FileLoader.loadJSON("../assets/objects/lamp.json");
+        GLOBAL_ASSETS.push(new UnicodeAsset("lamp_cm", JSON.parse(lampText), 0.5));
+        this.units.push(new Unit(11, 14, 0, 0, "lamp_cm"));
 
-        FileLoader.loadJSON("../assets/objects/lamp.json", (jsonText) => {
-            GLOBAL_ASSETS.push(new UnicodeAsset("lamp_cm", JSON.parse(jsonText), 0.5));
-            this.units.push(new Unit(11, 14, 0, 0, "lamp_cm"));
-
-            FileLoader.loadJSON("../assets/objects/rocket.json", (jsonText) => {
-                GLOBAL_ASSETS.push(new UnicodeAsset("rocket", JSON.parse(jsonText), 0.5));
-                SetAllLoaded(true);
-            });
-        });
+        let rocketText: string = await FileLoader.loadJSON("../assets/objects/rocket.json");
+        GLOBAL_ASSETS.push(new UnicodeAsset("rocket", JSON.parse(rocketText), 0.5));
 
         this.engine.setLoop(() => { this.move(); });
         this.engine.start(() => {
@@ -167,7 +182,7 @@ class Game {
             this.nFloor = this.screenHeight - this.nCeiling;
 
             // shader walls based on distance
-            let shadeLevel: string = (distanceToWall * 0.1).toFixed(2);
+            let shadeLevel: number = parseFloat((distanceToWall * 0.1).toFixed(2));
 			this.fDepthBuffer[i] = distanceToWall;
 
             let heightToDraw: number = 0;
@@ -202,7 +217,7 @@ class Game {
 
 			// check if object is inside wall - set flag for removal
 			if (this.map.surface[object.x * this.map.mapWidth + object.y] === "#") {
-				object.remove();
+				object.remove = true;
 			}
 
 			// can object be seen?
@@ -242,7 +257,7 @@ class Game {
                     fMiddleOfObject, // middle of the object
                     fDistanceFromPlayer, // distance between player and object
                     this.fDepthBuffer, // the depth buffer
-                    shadeLevel); // the shade level
+                    parseFloat(shadeLevel)); // the shade level
 			}
 		}
     }
@@ -251,7 +266,7 @@ class Game {
         this.controls = new Controls({
             pointerLock: true,
             canvas: this.renderer.canvas,
-            pointerCallout: (e: IMovement) => {
+            pointerCallback: (e: IMovement) => {
                 this.updatePosition(e);
             }
         });

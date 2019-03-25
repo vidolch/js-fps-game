@@ -1,8 +1,11 @@
-export const map1 = {
+import { GameMap } from "./main";
+
+export const map1 : GameMap = {
     mapHeight: 32,
     mapWidth: 32,
     surface: ""
-}
+};
+
 map1.surface =  "#########.......#########.......";
 map1.surface += "#...............#...............";
 map1.surface += "#.......#########.......########";

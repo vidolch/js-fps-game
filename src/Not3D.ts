@@ -1,4 +1,4 @@
-import { Renderer } from "./Rendering/Renderer";
+import { Renderer, RendererOptions } from "./Rendering/Renderer";
 import { AreAllAssetsLoaded } from "./Globals";
 import { Stats } from "./Utils/Stats";
 
@@ -7,7 +7,7 @@ export class Not3D {
     stats: Stats;
     loopCallback: Function;
 
-    constructor(parentElement: HTMLElement | null, renderOptions: object, stats: Stats) {
+    constructor(parentElement: HTMLElement, renderOptions: RendererOptions, stats: Stats) {
         this.stats = stats;
         this.renderer = new Renderer(parentElement, renderOptions);
     }
