@@ -1,6 +1,7 @@
-import { Renderer, RendererOptions } from "./Rendering/Renderer";
+import { Renderer } from "./Rendering/Renderer";
 import { AreAllAssetsLoaded } from "./Globals";
 import { Stats } from "./Utils/Stats";
+import { RendererOptions } from "./Rendering/RendererOptions";
 
 export class Not3D {
     renderer: Renderer;

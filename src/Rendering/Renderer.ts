@@ -1,16 +1,8 @@
-import { Point } from "./../UI";
 import { VisualUtils } from "./VisualUtils";
-import { GetAsset } from "../Globals";
 import { UnicodeAsset } from "./UnicodeAsset";
-
-export class RendererOptions {
-    resDecrease: number = 1;
-    canvasId: string = "mainScreen";
-}
-
-export class DrawOptions {
-    shadeLevel: number;
-}
+import { RendererOptions } from "./RendererOptions";
+import { DrawOptions } from "./DrawOptions";
+import { Point } from "src/Point";
 
 export class Renderer {
     parentElement: HTMLElement;
@@ -60,7 +52,7 @@ export class Renderer {
         }
     }
 
-    renderGlobals(): void {
+    async renderGlobals(): Promise<void> {
         if(!this.context) {
             return;
         }
@@ -77,11 +69,12 @@ export class Renderer {
         this.context.fillStyle = "black";
     }
 
-    renderImage(image: any, spaceX: number, spaceY: number, spaceWidth: number, spaceHeight: number, options: DrawOptions): void {
+    async renderImage(
+        image: any, spaceX: number, spaceY: number, spaceWidth: number, spaceHeight: number, options: DrawOptions): Promise<void> {
         let renderContext: CanvasRenderingContext2D = this.getRenderContext();
         if (this.shouldImageBeRendered(options)) {
             renderContext.drawImage(
-                GetAsset(image.i).image,
+                image.i.image,
                 image.X, image.Y, image.W, image.H,
                 spaceX, spaceY + this.yAngle, spaceWidth, spaceHeight);
         }
@@ -92,7 +85,7 @@ export class Renderer {
         }
     }
 
-    renderUnicodeAsset(
+    async renderUnicodeAsset(
         asset: UnicodeAsset,
         spaceX: number,
         spaceY: number,
@@ -101,7 +94,7 @@ export class Renderer {
         fMiddleOfObject: number,
         fDistanceFromPlayer: number,
         fDepthBuffer: number[],
-        shadeLevel: number): void {
+        shadeLevel: number): Promise<void> {
         let renderContext: CanvasRenderingContext2D = this.getRenderContext();
         for (let ly: number = 0; ly < asset.rows; ly++) {
             for (let lx: number = 0; lx < asset.cols; lx++) {
@@ -144,7 +137,7 @@ export class Renderer {
         }
     }
 
-    renderLine(coordinates: Point[], lineColor: string): void {
+    async renderLine(coordinates: Point[], lineColor: string): Promise<void> {
         if (!this.context) {
             return;
         }

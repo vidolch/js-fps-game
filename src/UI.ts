@@ -1,13 +1,10 @@
-import { GameMap, Player } from "./main";
 import { Renderer } from "./Rendering/Renderer";
 import { ImageAsset } from "./Rendering/ImageAsset";
 import { GLOBAL_ASSETS } from "./Globals";
-import { RendererOptions } from "./Rendering/Renderer";
-
-export class Point {
-    x: number;
-    y: number;
-}
+import { RendererOptions } from "./Rendering/RendererOptions";
+import { GameMap } from "./GameMap";
+import { Player } from "./Player";
+import { Point } from "./Point";
 
 export class UI {
     renderer: Renderer;

@@ -1,5 +1,5 @@
 import { Controls } from "./Controls";
-import { UI, Point } from "./UI";
+import { UI } from "./UI";
 
 import { Stats } from "./Utils/Stats";
 import { map1 } from "./config";
@@ -8,26 +8,13 @@ import { GLOBAL_ASSETS } from "./Globals";
 import { Unit } from "./Unit";
 import { UnicodeAsset } from "./Rendering/UnicodeAsset";
 import { FileLoader } from "./FileLoader";
-import { Renderer, RendererOptions } from "./Rendering/Renderer";
+import { Renderer } from "./Rendering/Renderer";
 import { Not3D } from "./Not3D";
-
-export interface IMovement {
-    movementX: number;
-    movementY: number;
-}
-
-export class GameMap {
-    mapHeight: number;
-    mapWidth: number;
-    surface: string;
-}
-
-export class Player {
-    posX: number;
-    posY: number;
-    angle: number;
-    yAngle: number;
-}
+import { Player } from "./Player";
+import { GameMap } from "./GameMap";
+import { Point } from "./Point";
+import { RendererOptions } from "./Rendering/RendererOptions";
+import { IMovement } from "./IMovement";
 
 class Game {
     engine: Not3D;
@@ -47,6 +34,7 @@ class Game {
     nCeiling: number;
     nFloor: number;
     controls: Controls;
+    wall: ImageAsset;
 
     constructor() {
         this.stats = new Stats();
@@ -83,7 +71,8 @@ class Game {
     }
 
     async init(): Promise<void> {
-        GLOBAL_ASSETS.push(new ImageAsset("wall_sprite", "./sprites/wall3.bmp"));
+        this.wall = new ImageAsset("wall_sprite", "./sprites/wall3.jpg");
+        GLOBAL_ASSETS.push(this.wall);
 
         this.units = [];
 
@@ -101,10 +90,10 @@ class Game {
     }
 
     move(): void {
+        this.renderer.beginOffScreen();
         this.renderer.yAngle = this.player.yAngle;
         this.renderer.renderGlobals();
 
-        this.renderer.beginOffScreen();
         this.mainScreen(0, this.screenWidth);
         this.handleObjects();
         this.renderer.endOffScreen();
@@ -199,7 +188,7 @@ class Game {
             this.renderer.renderImage({
                     X: fSampleX, Y: 0,
                     W: 1, H: 288,
-                    i: "wall_sprite"
+                    i: this.wall
                 },
                 i, firstY,
                 1, heightToDraw, {

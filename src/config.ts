@@ -1,4 +1,4 @@
-import { GameMap } from "./main";
+import { GameMap } from "./GameMap";
 
 export const map1 : GameMap = {
     mapHeight: 32,

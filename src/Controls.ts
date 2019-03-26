@@ -1,8 +1,4 @@
-export class ControlOptions {
-    pointerLock: boolean;
-    pointerCallback: Function;
-    canvas: HTMLElement;
-}
+import { ControlOptions } from "./ControlOptions";
 
 export class Controls {
     keysBindings: Function[];
