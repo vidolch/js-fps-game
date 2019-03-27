@@ -24,7 +24,7 @@ export class Renderer {
 		this.canvas.setAttribute("height",  document.body.scrollHeight.toString());
 		this.canvas.setAttribute("id",  this.options.canvasId);
         this.parentElement.appendChild(this.canvas);
-        this.context = this.canvas.getContext("2d");
+        this.context = this.canvas.getContext("2d", { alpha: options.transparent });
 
         this.nCeiling = 0;
         this.nFloor = 0;
@@ -72,6 +72,7 @@ export class Renderer {
     async renderImage(
         image: any, spaceX: number, spaceY: number, spaceWidth: number, spaceHeight: number, options: DrawOptions): Promise<void> {
         let renderContext: CanvasRenderingContext2D = this.getRenderContext();
+
         if (this.shouldImageBeRendered(options)) {
             renderContext.drawImage(
                 image.i.image,

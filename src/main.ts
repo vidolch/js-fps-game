@@ -111,7 +111,7 @@ class Game {
         let nTestX: number = 0;
         let nTestY: number = 0;
 
-        for (let i: number = from; i < to; i++) {
+        for (let i: number = from; i < to; i += 3) {
             fRayAngle = (this.player.angle - this.fFOV / 2.0) + (i / this.screenWidth) * this.fFOV;
             stepSize = 0.05;
             distanceToWall = 0.0;
@@ -173,6 +173,8 @@ class Game {
             // shader walls based on distance
             let shadeLevel: number = parseFloat((distanceToWall * 0.1).toFixed(2));
 			this.fDepthBuffer[i] = distanceToWall;
+			this.fDepthBuffer[i + 1] = distanceToWall;
+			this.fDepthBuffer[i + 2] = distanceToWall;
 
             let heightToDraw: number = 0;
             let firstY: number = -1;
@@ -187,11 +189,11 @@ class Game {
 
             this.renderer.renderImage({
                     X: fSampleX, Y: 0,
-                    W: 1, H: 288,
+                    W: 3, H: 288,
                     i: this.wall
                 },
                 i, firstY,
-                1, heightToDraw, {
+                3, heightToDraw, {
                     shadeLevel: shadeLevel
                 });
         }
@@ -298,8 +300,8 @@ class Game {
         });
 
         this.controls.bindMousedown(() => {
-			let vx: number = Math.sin(this.player.angle) * 0.8;
-			let vy: number = Math.cos(this.player.angle) * 0.8;
+			let vx: number = Math.sin(this.player.angle);
+            let vy: number = Math.cos(this.player.angle);
             this.units.push(new Unit(this.player.posX, this.player.posX, vx, vy, "rocket"));
         });
     }
@@ -318,23 +320,19 @@ class Game {
 
     updatePosition(e: IMovement): void {
         if(e.movementX > 0) {
-            this.player.angle += (e.movementX) * 0.005;
+            this.player.angle += (e.movementX) * 0.002;
         }
         if(e.movementX < 0) {
-            this.player.angle += ( e.movementX) * 0.005;
+            this.player.angle += ( e.movementX) * 0.002;
         }
         if(e.movementY > 0) {
-            this.player.yAngle += (e.movementY) * 1;
+            this.player.yAngle += (e.movementY) * 0.6;
         }
         if(e.movementY < 0) {
-            this.player.yAngle += ( e.movementY) * 1;
+            this.player.yAngle += ( e.movementY) * 0.6;
         }
     }
 }
 
-// (() =>  {
-//     window.onload = () => {
-        // tslint:disable-next-line:no-unused-expression
-        new Game();
-//     };
-// })();
+// tslint:disable-next-line:no-unused-expression
+new Game();
