@@ -3,8 +3,9 @@ import { UnicodeAsset } from "./UnicodeAsset";
 import { RendererOptions } from "./RendererOptions";
 import { DrawOptions } from "./DrawOptions";
 import { Point } from "src/Point";
+import { IRenderer } from "./IRenderer";
 
-export class Renderer {
+export class Renderer implements IRenderer {
     parentElement: HTMLElement;
     options: RendererOptions;
     canvas: HTMLCanvasElement;
@@ -30,6 +31,18 @@ export class Renderer {
         this.nFloor = 0;
         this.offScreen = false;
         this.yAngle = 0;
+    }
+
+    getCanvas(): HTMLCanvasElement {
+        return this.canvas;
+    }
+
+    getCameraAngle(): number {
+        return this.yAngle;
+    }
+
+    setCameraAngle(angle: number): number {
+        return this.yAngle = angle;
     }
 
     getWidth(): number {
@@ -123,11 +136,11 @@ export class Renderer {
         }
     }
 
-    getRenderContext(): CanvasRenderingContext2D {
+    private getRenderContext(): CanvasRenderingContext2D {
         return this.offScreen ? this.canvas["offscreenContext"] : this.context;
     }
 
-    shouldImageBeRendered(options: DrawOptions): boolean {
+    private shouldImageBeRendered(options: DrawOptions): boolean {
         return !!(typeof options === "undefined"
             || (typeof options !== "undefined" && options.shadeLevel !== undefined && options.shadeLevel < 0.99));
     }
@@ -157,7 +170,7 @@ export class Renderer {
         this.context.stroke();
     }
 
-    beginOffScreen(): void {
+    startFrame(): void {
         this.canvas["offscreenCanvas"] = document.createElement("canvas");
         this.canvas["offscreenCanvas"].width = this.getWidth();
         this.canvas["offscreenCanvas"].height = this.getWidth();
@@ -165,7 +178,7 @@ export class Renderer {
         this.offScreen = true;
     }
 
-    endOffScreen(): void {
+    endFrame(): void {
         if (this.context) {
             this.context.drawImage(this.canvas["offscreenCanvas"], 0, 0);
             this.offScreen = false;

@@ -5,9 +5,10 @@ import { RendererOptions } from "./Rendering/RendererOptions";
 import { GameMap } from "./GameMap";
 import { Player } from "./Player";
 import { Point } from "./Point";
+import { IRenderer } from "./Rendering/IRenderer";
 
 export class UI {
-    renderer: Renderer;
+    renderer: IRenderer;
     map: GameMap;
     player: Player;
     minimapOffset: { x: number, y: number};

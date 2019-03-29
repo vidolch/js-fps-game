@@ -1,5 +1,7 @@
+import { IRenderer } from "./Rendering/IRenderer";
+
 export class ControlOptions {
     pointerLock: boolean;
     pointerCallback: Function;
-    canvas: HTMLElement;
+    renderer: IRenderer;
 }

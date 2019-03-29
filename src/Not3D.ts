@@ -1,16 +1,19 @@
-import { Renderer } from "./Rendering/Renderer";
+import { WebGLRenderer } from "./Rendering/WebGL/WebGLRenderer";
 import { AreAllAssetsLoaded } from "./Globals";
 import { Stats } from "./Utils/Stats";
 import { RendererOptions } from "./Rendering/RendererOptions";
+import { IRenderer } from "./Rendering/IRenderer";
 
 export class Not3D {
-    renderer: Renderer;
+    renderer: IRenderer;
     stats: Stats;
     loopCallback: Function;
+    paused: boolean;
 
     constructor(parentElement: HTMLElement, renderOptions: RendererOptions, stats: Stats) {
         this.stats = stats;
-        this.renderer = new Renderer(parentElement, renderOptions);
+        this.renderer = new WebGLRenderer(parentElement, renderOptions);
+        this.paused = false;
     }
 
     setLoop(callback: Function): void {
@@ -18,10 +21,16 @@ export class Not3D {
     }
 
     mainLoop(): void {
-        if(this.stats) { this.stats.begin(); }
-        this.loopCallback();
-        if(this.stats) { this.stats.end(); }
-        requestAnimationFrame(() => { this.mainLoop(); });
+        if (!this.paused) {
+            if(this.stats) { this.stats.begin(); }
+            this.loopCallback();
+            if(this.stats) { this.stats.end(); }
+            requestAnimationFrame(() => { this.mainLoop(); });
+        } else {
+            setTimeout(() => {
+                requestAnimationFrame(() => { this.mainLoop(); });
+            }, 300);
+        }
     }
 
     start(callback: Function): void {
@@ -36,5 +45,9 @@ export class Not3D {
                 this.start(callback);
             }, 100);
         }
+    }
+
+    pause(): void {
+        this.paused = !this.paused;
     }
 }

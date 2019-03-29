@@ -10,11 +10,11 @@ export class Controls {
 
         if(!!options) {
             if (options.pointerLock) {
-                if (!options.canvas || !options.pointerCallback) {
-                    throw "In order to utilize pointer lock, provide canvas and callback in the options!";
+                if (!options.renderer || !options.pointerCallback) {
+                    throw "In order to utilize pointer lock, provide renderer and callback in the options!";
                 }
                 this.useMouse = false;
-                this.bindPointer(options.canvas as HTMLCanvasElement, options.pointerCallback);
+                this.bindPointer(options.renderer.getCanvas() as HTMLCanvasElement, options.pointerCallback);
             }
         }
         this.createEventListeners();

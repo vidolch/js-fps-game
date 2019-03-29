@@ -37,7 +37,9 @@
     "webpack-serve": "^3.0.0-beta.3"
   },
   "dependencies": {
+    "@types/gl-matrix": "^2.4.5",
     "babel-cli": "^6.26.0",
+    "gl-matrix": "^3.0.0",
     "http-server": "^0.11.1",
     "jsdom": "^11.12.0"
   }

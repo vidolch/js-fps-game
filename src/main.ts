@@ -8,18 +8,18 @@ import { GLOBAL_ASSETS } from "./Globals";
 import { Unit } from "./Unit";
 import { UnicodeAsset } from "./Rendering/UnicodeAsset";
 import { FileLoader } from "./FileLoader";
-import { Renderer } from "./Rendering/Renderer";
 import { Not3D } from "./Not3D";
 import { Player } from "./Player";
 import { GameMap } from "./GameMap";
 import { Point } from "./Point";
 import { RendererOptions } from "./Rendering/RendererOptions";
 import { IMovement } from "./IMovement";
+import { IRenderer } from "./Rendering/IRenderer";
 
 class Game {
     engine: Not3D;
     stats: Stats;
-    renderer: Renderer;
+    renderer: IRenderer;
     fFOV: number;
     fSpeed: number;
     fDepth: number;
@@ -49,7 +49,7 @@ class Game {
 
         this.renderer = this.engine.renderer;
 
-        this.fFOV = Math.PI / 4.0;	// field of View
+        this.fFOV = Math.PI / 3.0;	// field of View
         this.fSpeed = 2;
         this.fDepth = 25;			// maximum rendering distance
 
@@ -90,13 +90,13 @@ class Game {
     }
 
     move(): void {
-        this.renderer.beginOffScreen();
-        this.renderer.yAngle = this.player.yAngle;
+        this.renderer.startFrame();
+        this.renderer.setCameraAngle(this.player.yAngle);
         this.renderer.renderGlobals();
 
         this.mainScreen(0, this.screenWidth);
         this.handleObjects();
-        this.renderer.endOffScreen();
+        this.renderer.endFrame();
 
         this.ui.drawUI(this.middleCorrdinates, this.units);
     }
@@ -256,7 +256,7 @@ class Game {
     createControls(): any {
         this.controls = new Controls({
             pointerLock: true,
-            canvas: this.renderer.canvas,
+            renderer: this.renderer,
             pointerCallback: (e: IMovement) => {
                 this.updatePosition(e);
             }
@@ -297,6 +297,10 @@ class Game {
                 this.player.posX += this.calcNextPlayerPositionX();
                 this.player.posY -= this.calcNextPlayerPositionY();
             }
+        });
+        // right arrow OR "Q" key
+        this.controls.bindKeys(["16", "81"], () => {
+            this.engine.pause();
         });
 
         this.controls.bindMousedown(() => {
