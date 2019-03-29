@@ -1,6 +1,7 @@
+import { ObjectLoader, ParsedObject } from "./ObjectLoader";
+import { FileLoader } from "./../../FileLoader";
 import { I3dObject } from "./../../Objects/IObject";
 import { Ground } from "./../../Objects/Ground";
-// import { map1 } from './../config';
 import { IRenderer } from "../IRenderer";
 import { DrawOptions } from "../DrawOptions";
 import { UnicodeAsset } from "../UnicodeAsset";
@@ -30,7 +31,6 @@ export class WebGLRenderer implements IRenderer {
     groundBuffers: CombinedBuffer;
     texture: any;
 
-
     constructor(parentElement: HTMLElement, options: RendererOptions) {
         this.parentElement = parentElement;
         this.options = options;
@@ -49,11 +49,11 @@ export class WebGLRenderer implements IRenderer {
         this.vertexShader = this.loadShader(this.context.VERTEX_SHADER, vsSource);
         this.fragmentShader = this.loadShader(this.context.FRAGMENT_SHADER, fsSource);
 
-        // // create the shader program
         const shaderProgram: WebGLProgram | null = this.context.createProgram();
         if (shaderProgram === null) {
             throw("Could not create shader program.");
         }
+
         this.context.attachShader(shaderProgram, this.vertexShader);
         this.context.attachShader(shaderProgram, this.fragmentShader);
         this.context.linkProgram(shaderProgram);
@@ -77,8 +77,23 @@ export class WebGLRenderer implements IRenderer {
 
         this.groundBuffers = this.initBuffers(new Ground());
 
-        // tslint:disable-next-line:max-line-length
         this.texture = this.loadTexture("sprites/wall.png");
+
+        this.load();
+    }
+
+    private async load(): Promise<void> {
+        var pureObject: string = await FileLoader.loadJSON("assets/wall.obj");
+
+        var object: ParsedObject = ObjectLoader.load(pureObject);
+
+        this.groundBuffers = this.initBuffers({
+            positions: object.vertices,
+            textures: object.textures,
+            indices: object.indices
+        });
+
+        this.texture = this.loadTexture("assets/wall.jpg");
     }
 
     private loadShader(type: number, source: string): WebGLShader {
@@ -88,13 +103,9 @@ export class WebGLRenderer implements IRenderer {
             throw("Could not create shader.");
         }
 
-        // send the source to the shader object
         this.context.shaderSource(shader, source);
-
-        // compile the shader program
         this.context.compileShader(shader);
 
-        // see if it compiled successfully
         if (!this.context.getShaderParameter(shader, this.context.COMPILE_STATUS)) {
             this.context.deleteShader(shader);
             throw("An error occurred compiling the shaders: " + this.context.getShaderInfoLog(shader));
@@ -104,7 +115,6 @@ export class WebGLRenderer implements IRenderer {
     }
 
     private initBuffers(object: I3dObject): CombinedBuffer {
-        // create a buffer for the square's positions.
         const positionBuffer: WebGLBuffer | null = this.context.createBuffer();
         const colorBuffer: WebGLBuffer | null = null;
         let indexBuffer: WebGLBuffer | null = this.context.createBuffer();
@@ -114,12 +124,7 @@ export class WebGLRenderer implements IRenderer {
             throw("Could not create a WebGL buffer.");
         }
 
-        // select the positionBuffer as the one to apply buffer
-        // operations to from here out.
         this.context.bindBuffer(this.context.ARRAY_BUFFER, positionBuffer);
-        // now pass the list of positions into WebGL to build the
-        // shape. We do this by creating a Float32Array from the
-        // javaScript array, then use it to fill the current buffer.
         this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(object.positions), this.context.STATIC_DRAW);
 
         if (object.colors) {
@@ -132,7 +137,6 @@ export class WebGLRenderer implements IRenderer {
 
             for (let j: number = 0; j < object.colors.length; ++j) {
                 const c: number[] = object.colors[j];
-                // repeat each color four times for the four vertices of the face
                 colorsVert = colorsVert.concat(c, c, c, c);
             }
 
@@ -221,8 +225,8 @@ export class WebGLRenderer implements IRenderer {
         this.modelViewMatrix = mat4.create();
 
         mat4.translate(this.modelViewMatrix,     // destination matrix
-            this.modelViewMatrix,     // matrix to translate
-            [-0.0, 0.0, -6.0]);  // amount to translate
+            this.modelViewMatrix,                // matrix to translate
+            [-0.0, 0.0, -6.0]);                  // amount to translate
 
         this.context.useProgram(this.programInfo.program);
 
@@ -243,13 +247,8 @@ export class WebGLRenderer implements IRenderer {
 
         this.bindIndeces(this.groundBuffers.indecies);
 
-        // tell WebGL we want to affect texture unit 0
         this.context.activeTexture(this.context.TEXTURE0);
-
-        // bind the texture to texture unit 0
         this.context.bindTexture(this.context.TEXTURE_2D, this.texture);
-
-        // tell the shader we bound the texture to texture unit 0
         this.context.uniform1i(this.programInfo.uniformLocations.uSampler, 0);
 
         this.drawObject();
@@ -359,9 +358,6 @@ export class WebGLRenderer implements IRenderer {
             this.context.texImage2D(this.context.TEXTURE_2D, level, internalFormat,
                         srcFormat, srcType, image);
 
-            // webGL1 has different requirements for power of 2 images
-            // vs non power of 2 images so check if the image is a
-            // power of 2 in both dimensions.
             if (this.isPowerOf2(image.width) && this.isPowerOf2(image.height)) {
                 // yes, it's a power of 2. Generate mips.
                 this.context.generateMipmap(this.context.TEXTURE_2D);
